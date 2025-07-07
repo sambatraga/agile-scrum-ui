@@ -15,7 +15,7 @@ import {
   MoreHorizontal,
   Calendar,
   Bug,
-  Feature,
+  Star,
   Task,
   Eye,
 } from "lucide-react";
@@ -166,7 +166,7 @@ const getTypeIcon = (type: string) => {
     case "bug":
       return <Bug className="h-3 w-3 text-red-500" />;
     case "feature":
-      return <Feature className="h-3 w-3 text-blue-500" />;
+      return <Star className="h-3 w-3 text-blue-500" />;
     default:
       return <Task className="h-3 w-3 text-gray-500" />;
   }
