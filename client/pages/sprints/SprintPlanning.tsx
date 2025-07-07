@@ -25,9 +25,12 @@ export default function SprintPlanning() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Sprint Planning</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Sprint Planning
+            </h1>
             <p className="text-muted-foreground mt-1">
-              Planifiez votre prochain sprint avec objectifs et sélection de user stories
+              Planifiez votre prochain sprint avec objectifs et sélection de
+              user stories
             </p>
           </div>
           <div className="flex items-center gap-3 mt-4 lg:mt-0">
@@ -62,7 +65,7 @@ export default function SprintPlanning() {
                   <Input value="2 semaines" readOnly />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Date Début</label>
@@ -75,8 +78,10 @@ export default function SprintPlanning() {
               </div>
 
               <div>
-                <label className="text-sm font-medium">Objectif Sprint (Sprint Goal)</label>
-                <Textarea 
+                <label className="text-sm font-medium">
+                  Objectif Sprint (Sprint Goal)
+                </label>
+                <Textarea
                   placeholder="Décrivez l'objectif principal de ce sprint..."
                   value="Implémenter le système d'authentification complet avec OAuth2 et gestion des rôles utilisateurs"
                 />
@@ -95,11 +100,15 @@ export default function SprintPlanning() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-2xl font-bold text-primary">42</div>
-                  <div className="text-sm text-muted-foreground">Vélocité moyenne</div>
+                  <div className="text-sm text-muted-foreground">
+                    Vélocité moyenne
+                  </div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-blue-600">45</div>
-                  <div className="text-sm text-muted-foreground">Capacité équipe</div>
+                  <div className="text-sm text-muted-foreground">
+                    Capacité équipe
+                  </div>
                 </div>
               </div>
 
@@ -150,21 +159,24 @@ export default function SprintPlanning() {
                 {[
                   {
                     id: "US-201",
-                    title: "En tant qu'utilisateur, je veux me connecter avec OAuth2",
+                    title:
+                      "En tant qu'utilisateur, je veux me connecter avec OAuth2",
                     priority: "High",
                     points: 8,
                     status: "Ready",
                   },
                   {
-                    id: "US-202", 
-                    title: "En tant qu'admin, je veux gérer les rôles utilisateurs",
+                    id: "US-202",
+                    title:
+                      "En tant qu'admin, je veux gérer les rôles utilisateurs",
                     priority: "High",
                     points: 13,
                     status: "Ready",
                   },
                   {
                     id: "US-203",
-                    title: "En tant qu'utilisateur, je veux récupérer mon mot de passe",
+                    title:
+                      "En tant qu'utilisateur, je veux récupérer mon mot de passe",
                     priority: "Medium",
                     points: 5,
                     status: "Ready",
@@ -178,7 +190,8 @@ export default function SprintPlanning() {
                   },
                   {
                     id: "US-205",
-                    title: "En tant qu'admin, je veux voir l'historique des connexions",
+                    title:
+                      "En tant qu'admin, je veux voir l'historique des connexions",
                     priority: "Low",
                     points: 5,
                     status: "Ready",
@@ -193,21 +206,31 @@ export default function SprintPlanning() {
                         <span className="text-xs font-mono text-muted-foreground">
                           {story.id}
                         </span>
-                        <Badge variant={
-                          story.priority === "High" ? "destructive" :
-                          story.priority === "Medium" ? "default" :
-                          "outline"
-                        }>
+                        <Badge
+                          variant={
+                            story.priority === "High"
+                              ? "destructive"
+                              : story.priority === "Medium"
+                                ? "default"
+                                : "outline"
+                          }
+                        >
                           {story.priority}
                         </Badge>
-                        <Badge variant={story.status === "Ready" ? "secondary" : "outline"}>
+                        <Badge
+                          variant={
+                            story.status === "Ready" ? "secondary" : "outline"
+                          }
+                        >
                           {story.status}
                         </Badge>
                       </div>
                       <p className="text-sm font-medium">{story.title}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold">{story.points} SP</span>
+                      <span className="text-sm font-bold">
+                        {story.points} SP
+                      </span>
                       <Button size="sm" variant="ghost">
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -234,25 +257,29 @@ export default function SprintPlanning() {
                 {[
                   {
                     id: "US-201",
-                    title: "En tant qu'utilisateur, je veux me connecter avec OAuth2",
+                    title:
+                      "En tant qu'utilisateur, je veux me connecter avec OAuth2",
                     points: 8,
                     assignee: "Marie D.",
                   },
                   {
                     id: "US-202",
-                    title: "En tant qu'admin, je veux gérer les rôles utilisateurs", 
+                    title:
+                      "En tant qu'admin, je veux gérer les rôles utilisateurs",
                     points: 13,
                     assignee: "Pierre M.",
                   },
                   {
                     id: "US-203",
-                    title: "En tant qu'utilisateur, je veux récupérer mon mot de passe",
+                    title:
+                      "En tant qu'utilisateur, je veux récupérer mon mot de passe",
                     points: 5,
                     assignee: "Sophie L.",
                   },
                   {
                     id: "US-205",
-                    title: "En tant qu'admin, je veux voir l'historique des connexions",
+                    title:
+                      "En tant qu'admin, je veux voir l'historique des connexions",
                     points: 5,
                     assignee: "Thomas M.",
                   },
@@ -273,7 +300,9 @@ export default function SprintPlanning() {
                       <p className="text-sm font-medium">{story.title}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold">{story.points} SP</span>
+                      <span className="text-sm font-bold">
+                        {story.points} SP
+                      </span>
                       <Button size="sm" variant="ghost">
                         <ArrowRight className="h-4 w-4" />
                       </Button>
@@ -308,14 +337,16 @@ export default function SprintPlanning() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center">
-                <h3 className="font-medium mb-2">Story en cours d'estimation:</h3>
+                <h3 className="font-medium mb-2">
+                  Story en cours d'estimation:
+                </h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   US-204: En tant qu'utilisateur, je veux activer la 2FA
                 </p>
               </div>
 
               <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 5, 8, 13, 21, '?'].map((point) => (
+                {[1, 2, 3, 5, 8, 13, 21, "?"].map((point) => (
                   <Button
                     key={point}
                     variant="outline"
@@ -373,11 +404,16 @@ export default function SprintPlanning() {
                 <div className="flex items-center space-x-2">
                   <input type="checkbox" id="unit-tests" checked readOnly />
                   <label htmlFor="unit-tests" className="text-sm">
-                    Tests unitaires écrits et passants (>80% couverture)
+                    Tests unitaires écrits et passants (&gt;80% couverture)
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input type="checkbox" id="integration-tests" checked readOnly />
+                  <input
+                    type="checkbox"
+                    id="integration-tests"
+                    checked
+                    readOnly
+                  />
                   <label htmlFor="integration-tests" className="text-sm">
                     Tests d'intégration passants
                   </label>
@@ -389,7 +425,12 @@ export default function SprintPlanning() {
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input type="checkbox" id="acceptance-criteria" checked readOnly />
+                  <input
+                    type="checkbox"
+                    id="acceptance-criteria"
+                    checked
+                    readOnly
+                  />
                   <label htmlFor="acceptance-criteria" className="text-sm">
                     Critères d'acceptation validés par PO
                   </label>
@@ -413,10 +454,13 @@ export default function SprintPlanning() {
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertCircle className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm font-medium text-orange-800">Attention</span>
+                  <span className="text-sm font-medium text-orange-800">
+                    Attention
+                  </span>
                 </div>
                 <p className="text-sm text-orange-700">
-                  Toutes les conditions DoD doivent être remplies avant de marquer une story comme "Done".
+                  Toutes les conditions DoD doivent être remplies avant de
+                  marquer une story comme "Done".
                 </p>
               </div>
             </CardContent>
@@ -430,13 +474,12 @@ export default function SprintPlanning() {
               <div>
                 <h3 className="font-medium">Sprint Planning prêt ?</h3>
                 <p className="text-sm text-muted-foreground">
-                  Vérifiez que l'objectif, la capacité et les user stories sont validés
+                  Vérifiez que l'objectif, la capacité et les user stories sont
+                  validés
                 </p>
               </div>
               <div className="flex gap-3">
-                <Button variant="outline">
-                  Sauvegarder Brouillon
-                </Button>
+                <Button variant="outline">Sauvegarder Brouillon</Button>
                 <Button>
                   <Target className="mr-2 h-4 w-4" />
                   Démarrer Sprint
