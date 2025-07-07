@@ -16,6 +16,12 @@ import AIAssistant from "./pages/ai/AIAssistant";
 import Analytics from "./pages/analytics/Analytics";
 import NotFound from "./pages/NotFound";
 
+// Import des nouvelles pages
+import SprintPlanning from "./pages/sprints/SprintPlanning";
+import KanbanBoard from "./pages/tasks/KanbanBoard";
+import EisenhowerMatrix from "./pages/productivity/EisenhowerMatrix";
+import PomodoroTimer from "./pages/productivity/PomodoroTimer";
+
 // Placeholder imports for other modules
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import {
@@ -74,16 +80,7 @@ const App = () => (
           />
 
           {/* Sprints */}
-          <Route
-            path="/sprints/planning"
-            element={
-              <PlaceholderPage
-                title="Sprint Planning"
-                description="Plan sprints with goal setting, story selection, and planning poker."
-                icon={Target}
-              />
-            }
-          />
+          <Route path="/sprints/planning" element={<SprintPlanning />} />
           <Route
             path="/sprints/execution"
             element={
@@ -106,16 +103,7 @@ const App = () => (
           />
 
           {/* Tasks */}
-          <Route
-            path="/tasks/kanban"
-            element={
-              <PlaceholderPage
-                title="Kanban Board"
-                description="Manage tasks across To Do, In Progress, Code Review, Testing, and Done columns."
-                icon={CheckSquare}
-              />
-            }
-          />
+          <Route path="/tasks/kanban" element={<KanbanBoard />} />
           <Route
             path="/tasks/time"
             element={
@@ -130,24 +118,9 @@ const App = () => (
           {/* Productivity */}
           <Route
             path="/productivity/eisenhower"
-            element={
-              <PlaceholderPage
-                title="Eisenhower Matrix"
-                description="Organize tasks by urgency and importance with AI suggestions."
-                icon={Target}
-              />
-            }
+            element={<EisenhowerMatrix />}
           />
-          <Route
-            path="/productivity/pomodoro"
-            element={
-              <PlaceholderPage
-                title="Pomodoro Timer"
-                description="Boost productivity with focused work sessions and break reminders."
-                icon={Zap}
-              />
-            }
-          />
+          <Route path="/productivity/pomodoro" element={<PomodoroTimer />} />
 
           {/* AI Assistant */}
           <Route path="/ai" element={<AIAssistant />} />
