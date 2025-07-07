@@ -16,7 +16,7 @@ import {
   Calendar,
   Bug,
   Star,
-  Task,
+  Circle,
   Eye,
 } from "lucide-react";
 
@@ -168,7 +168,7 @@ const getTypeIcon = (type: string) => {
     case "feature":
       return <Star className="h-3 w-3 text-blue-500" />;
     default:
-      return <Task className="h-3 w-3 text-gray-500" />;
+      return <Circle className="h-3 w-3 text-gray-500" />;
   }
 };
 
