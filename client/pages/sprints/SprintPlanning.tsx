@@ -69,11 +69,11 @@ export default function SprintPlanning() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Date Début</label>
-                  <Input type="date" value="2024-02-15" />
+                  <Input type="date" defaultValue="2024-02-15" />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Date Fin</label>
-                  <Input type="date" value="2024-02-29" />
+                  <Input type="date" defaultValue="2024-02-29" />
                 </div>
               </div>
 
@@ -83,7 +83,7 @@ export default function SprintPlanning() {
                 </label>
                 <Textarea
                   placeholder="Décrivez l'objectif principal de ce sprint..."
-                  value="Implémenter le système d'authentification complet avec OAuth2 et gestion des rôles utilisateurs"
+                  defaultValue="Implémenter le système d'authentification complet avec OAuth2 et gestion des rôles utilisateurs"
                 />
               </div>
             </CardContent>
