@@ -24,27 +24,27 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Projects",
+    title: "Projets",
     href: "/projects",
     icon: FolderOpen,
   },
   {
-    title: "Team",
+    title: "Equipe",
     href: "/team",
     icon: Users,
   },
   {
-    title: "Product Backlog",
+    title: "Backlog",
     href: "/backlog",
     icon: BookOpen,
   },
   {
-    title: "Sprint Backlog",
+    title: "Sprint",
     href: "/sprint-backlog",
     icon: Calendar,
   },
   {
-    title: "Sprint Planning",
+    title: "Planning Sprint",
     href: "/sprints/planning",
     icon: Target,
   },
@@ -59,7 +59,7 @@ const navItems = [
     icon: CheckSquare,
   },
   {
-    title: "Kanban Board",
+    title: "Tableau",
     href: "/tasks/kanban",
     icon: CheckSquare,
   },
