@@ -69,12 +69,12 @@ const navItems = [
     icon: Clock,
   },
   {
-    title: "Eisenhower Matrix",
+    title: "Matrice d'Eisenhower",
     href: "/productivity/eisenhower",
     icon: Target,
   },
   {
-    title: "Pomodoro Timer",
+    title: "Pomodoro ",
     href: "/productivity/pomodoro",
     icon: Zap,
   },
