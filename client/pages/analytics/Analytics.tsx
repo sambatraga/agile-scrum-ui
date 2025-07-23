@@ -34,7 +34,7 @@ export default function Analytics() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Analytics & Reporting
+              Analyses & Reporting
             </h1>
             <p className="text-muted-foreground mt-1">
               Analysez les performances de vos équipes et projets avec des
