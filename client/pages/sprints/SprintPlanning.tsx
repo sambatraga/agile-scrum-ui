@@ -26,7 +26,7 @@ export default function SprintPlanning() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Sprint Planning
+              Planning Sprint
             </h1>
             <p className="text-muted-foreground mt-1">
               Planifiez votre prochain sprint avec objectifs et sélection de
