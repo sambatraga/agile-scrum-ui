@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useSidebar } from "./SidebarContext";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -102,9 +103,15 @@ const navItems = [
 
 export function Sidebar() {
   const location = useLocation();
+  const { isOpen } = useSidebar();
 
   return (
-    <div className="flex h-full w-64 flex-col bg-sidebar border-r border-sidebar-border">
+    <div
+      className={cn(
+        "flex h-full flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out",
+        isOpen ? "w-64" : "w-0 lg:w-16"
+      )}
+    >
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-sidebar-border px-6">
         <div className="flex items-center space-x-2">
