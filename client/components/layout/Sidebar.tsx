@@ -113,24 +113,32 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+      <div className={cn(
+        "flex h-16 items-center border-b border-sidebar-border transition-all duration-300",
+        isOpen ? "px-6" : "px-2 justify-center"
+      )}>
         <div className="flex items-center space-x-2">
           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
             <span className="text-sm font-bold text-white">G</span>
           </div>
-          <div>
-            <h1 className="text-lg font-semibold text-sidebar-foreground">
-              GPAS
-            </h1>
-            <p className="text-xs text-sidebar-foreground/60">
-              Agile Project Management
-            </p>
-          </div>
+          {isOpen && (
+            <div>
+              <h1 className="text-lg font-semibold text-sidebar-foreground">
+                GPAS
+              </h1>
+              <p className="text-xs text-sidebar-foreground/60">
+                Agile Project Management
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className={cn(
+        "flex-1 space-y-1 py-4 transition-all duration-300",
+        isOpen ? "px-3" : "px-2"
+      )}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
@@ -140,14 +148,16 @@ export function Sidebar() {
               key={item.href}
               to={item.href}
               className={cn(
-                "flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex items-center rounded-lg py-2.5 text-sm font-medium transition-colors",
+                isOpen ? "space-x-3 px-3" : "justify-center px-2",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-primary"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
               )}
+              title={!isOpen ? item.title : undefined}
             >
-              <Icon className="h-5 w-5" />
-              <span>{item.title}</span>
+              <Icon className="h-5 w-5 flex-shrink-0" />
+              {isOpen && <span>{item.title}</span>}
             </Link>
           );
         })}
