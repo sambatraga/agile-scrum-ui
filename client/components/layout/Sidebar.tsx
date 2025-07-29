@@ -109,14 +109,16 @@ export function Sidebar() {
     <div
       className={cn(
         "flex h-full flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out overflow-hidden",
-        isOpen ? "w-64" : "w-0 lg:w-16"
+        isOpen ? "w-64" : "w-0 lg:w-16",
       )}
     >
       {/* Logo */}
-      <div className={cn(
-        "flex h-16 items-center border-b border-sidebar-border transition-all duration-300",
-        isOpen ? "px-6" : "px-2 justify-center"
-      )}>
+      <div
+        className={cn(
+          "flex h-16 items-center border-b border-sidebar-border transition-all duration-300",
+          isOpen ? "px-6" : "px-2 justify-center",
+        )}
+      >
         <div className="flex items-center space-x-2">
           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
             <span className="text-sm font-bold text-white">G</span>
@@ -135,10 +137,12 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className={cn(
-        "flex-1 space-y-1 py-4 transition-all duration-300",
-        isOpen ? "px-3" : "px-2"
-      )}>
+      <nav
+        className={cn(
+          "flex-1 space-y-1 py-4 transition-all duration-300",
+          isOpen ? "px-3" : "px-2",
+        )}
+      >
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
@@ -164,14 +168,18 @@ export function Sidebar() {
       </nav>
 
       {/* User Profile */}
-      <div className={cn(
-        "border-t border-sidebar-border p-4 transition-all duration-300",
-        !isOpen && "px-2"
-      )}>
-        <div className={cn(
-          "flex items-center",
-          isOpen ? "space-x-3" : "justify-center"
-        )}>
+      <div
+        className={cn(
+          "border-t border-sidebar-border p-4 transition-all duration-300",
+          !isOpen && "px-2",
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center",
+            isOpen ? "space-x-3" : "justify-center",
+          )}
+        >
           <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex-shrink-0"></div>
           {isOpen && (
             <div className="flex-1 min-w-0">
