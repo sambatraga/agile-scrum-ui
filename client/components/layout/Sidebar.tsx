@@ -108,7 +108,7 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "flex h-full flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out",
+        "flex h-full flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out overflow-hidden",
         isOpen ? "w-64" : "w-0 lg:w-16"
       )}
     >
@@ -164,17 +164,25 @@ export function Sidebar() {
       </nav>
 
       {/* User Profile */}
-      <div className="border-t border-sidebar-border p-4">
-        <div className="flex items-center space-x-3">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent"></div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">
-              John Doe
-            </p>
-            <p className="text-xs text-sidebar-foreground/60 truncate">
-              Product Owner
-            </p>
-          </div>
+      <div className={cn(
+        "border-t border-sidebar-border p-4 transition-all duration-300",
+        !isOpen && "px-2"
+      )}>
+        <div className={cn(
+          "flex items-center",
+          isOpen ? "space-x-3" : "justify-center"
+        )}>
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex-shrink-0"></div>
+          {isOpen && (
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                John Doe
+              </p>
+              <p className="text-xs text-sidebar-foreground/60 truncate">
+                Product Owner
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
