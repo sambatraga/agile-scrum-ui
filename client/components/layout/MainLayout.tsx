@@ -35,7 +35,7 @@ function MainLayoutContent({ children }: MainLayoutProps) {
           </Button>
         </div>
 
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto pl-6">{children}</main>
       </div>
     </div>
   );
