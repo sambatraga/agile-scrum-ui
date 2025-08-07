@@ -9,7 +9,7 @@ import {
   Bell,
   Settings,
   Filter,
-  MarkAsUnread,
+  MailOpen,
   CheckCheck,
   AlertTriangle,
   Calendar,
@@ -113,7 +113,7 @@ const notificationSettings = [
     ],
   },
   {
-    category: "Équipe & Collaboration", 
+    category: "Équipe & Collaboration",
     settings: [
       { name: "Code review demandée", email: true, push: true, inApp: true },
       { name: "Nouveau membre équipe", email: true, push: false, inApp: true },
@@ -151,7 +151,7 @@ const getNotificationIcon = (category: string) => {
 
 const getNotificationColor = (type: string, read: boolean) => {
   const baseClasses = read ? "bg-gray-50" : "bg-white border-l-4";
-  
+
   switch (type) {
     case "urgent":
       return `${baseClasses} ${!read ? "border-l-red-500" : ""}`;
