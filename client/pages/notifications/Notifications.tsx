@@ -327,7 +327,7 @@ export default function Notifications() {
                           )}
                           <Button size="sm" variant="ghost">
                             {notification.read ? (
-                              <MarkAsUnread className="h-3 w-3" />
+                              <MailOpen className="h-3 w-3" />
                             ) : (
                               <CheckCheck className="h-3 w-3" />
                             )}
