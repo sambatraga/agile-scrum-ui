@@ -1,544 +1,807 @@
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "@/hooks/use-toast";
 import {
   Users,
   Plus,
-  Filter,
-  Search,
-  Mail,
-  Phone,
+  UserPlus,
   Calendar,
   Clock,
   Target,
-  TrendingUp,
   AlertCircle,
   CheckCircle,
   Star,
   Settings,
+  Bell,
+  Shield,
+  Eye,
+  Edit,
+  Trash2,
+  MoreVertical,
+  UserCheck,
+  UserX,
+  Briefcase,
+  Mail
 } from "lucide-react";
 
-const teamMembers = [
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  skills: string[];
+  availability: 'disponible' | 'occupe' | 'conges' | 'indisponible';
+  projectAssignments: ProjectAssignment[];
+  lastActive: string;
+  joinDate: string;
+}
+
+interface ProjectAssignment {
+  projectId: string;
+  projectName: string;
+  role: string;
+  startDate: string;
+  endDate?: string;
+  workloadPercentage: number;
+  permissions: string[];
+}
+
+interface Role {
+  id: string;
+  name: string;
+  permissions: string[];
+  color: string;
+}
+
+const predefinedRoles: Role[] = [
   {
-    id: 1,
-    name: "Marie Dubois",
-    email: "marie.dubois@gpas.com",
-    role: "Développeur Senior",
-    status: "Disponible",
-    avatar: "MD",
-    skills: ["React", "TypeScript", "Node.js", "PostgreSQL"],
-    currentSprint: {
-      taskCount: 8,
-      completedTasks: 6,
-      storyPoints: 21,
-      completedPoints: 16,
-    },
-    productivity: 92,
-    lastActive: "Il y a 5 min",
+    id: 'product-owner',
+    name: 'Product Owner',
+    permissions: ['view_backlog', 'edit_backlog', 'create_user_stories', 'prioritize_backlog', 'manage_releases'],
+    color: 'bg-purple-100 text-purple-800'
   },
   {
-    id: 2,
-    name: "Pierre Martin",
-    email: "pierre.martin@gpas.com",
-    role: "Product Owner",
-    status: "En réunion",
-    avatar: "PM",
-    skills: ["Product Management", "SCRUM", "Analytics", "UX"],
-    currentSprint: {
-      taskCount: 5,
-      completedTasks: 4,
-      storyPoints: 15,
-      completedPoints: 12,
-    },
-    productivity: 88,
-    lastActive: "Il y a 1h",
+    id: 'scrum-master',
+    name: 'Scrum Master',
+    permissions: ['manage_sprints', 'facilitate_ceremonies', 'remove_impediments', 'coach_team', 'track_metrics'],
+    color: 'bg-blue-100 text-blue-800'
   },
   {
-    id: 3,
-    name: "Sophie Laurent",
-    email: "sophie.laurent@gpas.com",
-    role: "UX/UI Designer",
-    status: "Disponible",
-    avatar: "SL",
-    skills: ["Figma", "Adobe Creative", "Prototyping", "User Research"],
-    currentSprint: {
-      taskCount: 6,
-      completedTasks: 5,
-      storyPoints: 18,
-      completedPoints: 15,
-    },
-    productivity: 85,
-    lastActive: "Il y a 15 min",
+    id: 'developer',
+    name: 'Développeur',
+    permissions: ['view_tasks', 'edit_tasks', 'create_tasks', 'estimate_tasks', 'update_progress'],
+    color: 'bg-green-100 text-green-800'
   },
   {
-    id: 4,
-    name: "Thomas Moreau",
-    email: "thomas.moreau@gpas.com",
-    role: "QA Tester",
-    status: "Disponible",
-    avatar: "TM",
-    skills: ["Test Automation", "Cypress", "Jest", "Manual Testing"],
-    currentSprint: {
-      taskCount: 12,
-      completedTasks: 10,
-      storyPoints: 24,
-      completedPoints: 20,
-    },
-    productivity: 95,
-    lastActive: "Il y a 10 min",
+    id: 'designer',
+    name: 'Designer UX/UI',
+    permissions: ['view_tasks', 'edit_design_tasks', 'create_mockups', 'user_research', 'prototyping'],
+    color: 'bg-pink-100 text-pink-800'
   },
   {
-    id: 5,
-    name: "Julie Petit",
-    email: "julie.petit@gpas.com",
-    role: "Développeur",
-    status: "Congés",
-    avatar: "JP",
-    skills: ["Vue.js", "Python", "Docker", "AWS"],
-    currentSprint: {
-      taskCount: 0,
-      completedTasks: 0,
-      storyPoints: 0,
-      completedPoints: 0,
-    },
-    productivity: 0,
-    lastActive: "Il y a 3 jours",
+    id: 'qa-tester',
+    name: 'QA Tester',
+    permissions: ['view_tasks', 'create_test_cases', 'execute_tests', 'report_bugs', 'validate_features'],
+    color: 'bg-orange-100 text-orange-800'
   },
+  {
+    id: 'stakeholder',
+    name: 'Stakeholder',
+    permissions: ['view_progress', 'view_reports', 'provide_feedback', 'approve_releases'],
+    color: 'bg-gray-100 text-gray-800'
+  }
 ];
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Disponible":
-      return "bg-green-100 text-green-800 border-green-200";
-    case "En réunion":
-      return "bg-orange-100 text-orange-800 border-orange-200";
-    case "Congés":
-      return "bg-gray-100 text-gray-800 border-gray-200";
-    default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
-  }
+const availabilityColors = {
+  disponible: 'bg-green-100 text-green-800',
+  occupe: 'bg-yellow-100 text-yellow-800',
+  conges: 'bg-blue-100 text-blue-800',
+  indisponible: 'bg-red-100 text-red-800'
 };
 
+const availabilityLabels = {
+  disponible: 'Disponible',
+  occupe: 'Occupé',
+  conges: 'En Congés',
+  indisponible: 'Indisponible'
+};
+
+const mockTeamMembers: TeamMember[] = [
+  {
+    id: '1',
+    name: 'Marie Dubois',
+    email: 'marie.dubois@gpas.com',
+    avatar: 'MD',
+    skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL'],
+    availability: 'disponible',
+    projectAssignments: [
+      {
+        projectId: '1',
+        projectName: 'Plateforme E-commerce',
+        role: 'developer',
+        startDate: '2024-01-15',
+        workloadPercentage: 80,
+        permissions: ['view_tasks', 'edit_tasks', 'create_tasks', 'estimate_tasks', 'update_progress']
+      }
+    ],
+    lastActive: 'Il y a 5 min',
+    joinDate: '2023-06-15'
+  },
+  {
+    id: '2',
+    name: 'Pierre Lambert',
+    email: 'pierre.lambert@gpas.com',
+    avatar: 'PL',
+    skills: ['Product Management', 'SCRUM', 'Analytics', 'UX'],
+    availability: 'occupe',
+    projectAssignments: [
+      {
+        projectId: '1',
+        projectName: 'Plateforme E-commerce',
+        role: 'product-owner',
+        startDate: '2024-01-10',
+        workloadPercentage: 60,
+        permissions: ['view_backlog', 'edit_backlog', 'create_user_stories', 'prioritize_backlog', 'manage_releases']
+      },
+      {
+        projectId: '2',
+        projectName: 'Application Mobile Banking',
+        role: 'product-owner',
+        startDate: '2024-02-15',
+        workloadPercentage: 40,
+        permissions: ['view_backlog', 'edit_backlog', 'create_user_stories', 'prioritize_backlog', 'manage_releases']
+      }
+    ],
+    lastActive: 'Il y a 1h',
+    joinDate: '2023-03-10'
+  },
+  {
+    id: '3',
+    name: 'Sophie Chen',
+    email: 'sophie.chen@gpas.com',
+    avatar: 'SC',
+    skills: ['Figma', 'Adobe Creative', 'Prototyping', 'User Research'],
+    availability: 'disponible',
+    projectAssignments: [
+      {
+        projectId: '1',
+        projectName: 'Plateforme E-commerce',
+        role: 'designer',
+        startDate: '2024-01-20',
+        workloadPercentage: 70,
+        permissions: ['view_tasks', 'edit_design_tasks', 'create_mockups', 'user_research', 'prototyping']
+      }
+    ],
+    lastActive: 'Il y a 15 min',
+    joinDate: '2023-08-20'
+  },
+  {
+    id: '4',
+    name: 'Jean Martin',
+    email: 'jean.martin@gpas.com',
+    avatar: 'JM',
+    skills: ['SCRUM', 'Agile Coaching', 'Facilitation', 'Metrics'],
+    availability: 'disponible',
+    projectAssignments: [
+      {
+        projectId: '1',
+        projectName: 'Plateforme E-commerce',
+        role: 'scrum-master',
+        startDate: '2024-01-10',
+        workloadPercentage: 50,
+        permissions: ['manage_sprints', 'facilitate_ceremonies', 'remove_impediments', 'coach_team', 'track_metrics']
+      }
+    ],
+    lastActive: 'Il y a 30 min',
+    joinDate: '2023-05-01'
+  },
+  {
+    id: '5',
+    name: 'Thomas Blanc',
+    email: 'thomas.blanc@gpas.com',
+    avatar: 'TB',
+    skills: ['Test Automation', 'Cypress', 'Jest', 'Manual Testing'],
+    availability: 'conges',
+    projectAssignments: [],
+    lastActive: 'Il y a 3 jours',
+    joinDate: '2023-09-10'
+  },
+  {
+    id: '6',
+    name: 'Emma Wilson',
+    email: 'emma.wilson@gpas.com',
+    avatar: 'EW',
+    skills: ['React Native', 'Flutter', 'iOS', 'Android'],
+    availability: 'disponible',
+    projectAssignments: [
+      {
+        projectId: '2',
+        projectName: 'Application Mobile Banking',
+        role: 'developer',
+        startDate: '2024-02-20',
+        workloadPercentage: 90,
+        permissions: ['view_tasks', 'edit_tasks', 'create_tasks', 'estimate_tasks', 'update_progress']
+      }
+    ],
+    lastActive: 'Il y a 2h',
+    joinDate: '2023-11-15'
+  }
+];
+
+const mockProjects = [
+  { id: '1', name: 'Plateforme E-commerce' },
+  { id: '2', name: 'Application Mobile Banking' },
+  { id: '3', name: 'Système CRM' },
+  { id: '4', name: 'Site Web Vitrine' }
+];
+
 export default function TeamManagement() {
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(mockTeamMembers);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [removeAssignmentId, setRemoveAssignmentId] = useState<string | null>(null);
+  const [assignmentForm, setAssignmentForm] = useState({
+    memberId: '',
+    projectId: '',
+    role: '',
+    startDate: '',
+    endDate: '',
+    workloadPercentage: 50
+  });
+
+  const calculateTotalWorkload = (memberId: string) => {
+    const member = teamMembers.find(m => m.id === memberId);
+    if (!member) return 0;
+    return member.projectAssignments.reduce((total, assignment) => total + assignment.workloadPercentage, 0);
+  };
+
+  const canAssignToProject = (memberId: string) => {
+    const member = teamMembers.find(m => m.id === memberId);
+    if (!member) return false;
+    
+    // Maximum 5 projects per user
+    if (member.projectAssignments.length >= 5) return false;
+    
+    // Check if total workload would exceed 100%
+    const currentWorkload = calculateTotalWorkload(memberId);
+    return currentWorkload + assignmentForm.workloadPercentage <= 100;
+  };
+
+  const handleAssignMember = () => {
+    if (!assignmentForm.memberId || !assignmentForm.projectId || !assignmentForm.role || !assignmentForm.startDate) {
+      toast({
+        title: "Erreur",
+        description: "Tous les champs obligatoires doivent être remplis",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!canAssignToProject(assignmentForm.memberId)) {
+      toast({
+        title: "Assignation impossible",
+        description: "L'utilisateur a atteint la limite de 5 projets ou la charge de travail dépasserait 100%",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const selectedRole = predefinedRoles.find(r => r.id === assignmentForm.role);
+    const selectedProject = mockProjects.find(p => p.id === assignmentForm.projectId);
+    
+    if (!selectedRole || !selectedProject) return;
+
+    const newAssignment: ProjectAssignment = {
+      projectId: assignmentForm.projectId,
+      projectName: selectedProject.name,
+      role: assignmentForm.role,
+      startDate: assignmentForm.startDate,
+      endDate: assignmentForm.endDate || undefined,
+      workloadPercentage: assignmentForm.workloadPercentage,
+      permissions: selectedRole.permissions
+    };
+
+    setTeamMembers(prev => prev.map(member => 
+      member.id === assignmentForm.memberId
+        ? { ...member, projectAssignments: [...member.projectAssignments, newAssignment] }
+        : member
+    ));
+
+    // Notification automatique
+    const memberName = teamMembers.find(m => m.id === assignmentForm.memberId)?.name;
+    toast({
+      title: "Assignation réussie",
+      description: `${memberName} a été assigné(e) au projet ${selectedProject.name}. Une notification a été envoyée.`
+    });
+
+    setIsAssignDialogOpen(false);
+    setAssignmentForm({
+      memberId: '', projectId: '', role: '', startDate: '', endDate: '', workloadPercentage: 50
+    });
+  };
+
+  const handleRemoveAssignment = () => {
+    if (!removeAssignmentId || !selectedMember) return;
+
+    const [memberId, projectId] = removeAssignmentId.split('-');
+    
+    setTeamMembers(prev => prev.map(member => 
+      member.id === memberId
+        ? { 
+            ...member, 
+            projectAssignments: member.projectAssignments.filter(a => a.projectId !== projectId)
+          }
+        : member
+    ));
+
+    toast({
+      title: "Assignation supprimée",
+      description: "Le membre a été retiré du projet. Une notification a été envoyée."
+    });
+
+    setRemoveAssignmentId(null);
+    setSelectedMember(null);
+  };
+
+  const TeamMemberCard = ({ member }: { member: TeamMember }) => {
+    const totalWorkload = calculateTotalWorkload(member.id);
+    const canAddProject = member.projectAssignments.length < 5 && totalWorkload < 100;
+
+    return (
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-3">
+              <Avatar className="w-12 h-12">
+                <AvatarFallback className="text-sm font-medium">
+                  {member.avatar}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-medium">{member.name}</h3>
+                <p className="text-sm text-muted-foreground">{member.email}</p>
+                <Badge className={availabilityColors[member.availability]} variant="secondary">
+                  {availabilityLabels[member.availability]}
+                </Badge>
+              </div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setSelectedMember(member)}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Voir détails
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modifier
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Contacter
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span>Charge de travail</span>
+              <span>{totalWorkload}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full ${totalWorkload > 80 ? 'bg-red-500' : totalWorkload > 60 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                style={{ width: `${Math.min(totalWorkload, 100)}%` }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium">Projets assignés</span>
+              <Badge variant="outline">{member.projectAssignments.length}/5</Badge>
+            </div>
+            {member.projectAssignments.length > 0 ? (
+              <div className="space-y-2">
+                {member.projectAssignments.map((assignment) => {
+                  const role = predefinedRoles.find(r => r.id === assignment.role);
+                  return (
+                    <div key={`${assignment.projectId}-${assignment.role}`} className="flex justify-between items-center p-2 bg-muted rounded-lg">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{assignment.projectName}</p>
+                        <div className="flex items-center gap-2">
+                          {role && (
+                            <Badge className={role.color} variant="secondary">
+                              {role.name}
+                            </Badge>
+                          )}
+                          <span className="text-xs text-muted-foreground">
+                            {assignment.workloadPercentage}%
+                          </span>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedMember(member);
+                          setRemoveAssignmentId(`${member.id}-${assignment.projectId}`);
+                        }}
+                      >
+                        <UserX className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                Aucun projet assigné
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-1">
+            {member.skills.slice(0, 3).map(skill => (
+              <Badge key={skill} variant="outline" className="text-xs">
+                {skill}
+              </Badge>
+            ))}
+            {member.skills.length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{member.skills.length - 3}
+              </Badge>
+            )}
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              disabled={!canAddProject || member.availability === 'conges'}
+              onClick={() => {
+                setAssignmentForm(prev => ({ ...prev, memberId: member.id }));
+                setIsAssignDialogOpen(true);
+              }}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Assigner
+            </Button>
+            <Button variant="outline" size="sm">
+              <Calendar className="h-4 w-4 mr-2" />
+              Planning
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const availableMembers = teamMembers.filter(m => m.availability === 'disponible');
+  const busyMembers = teamMembers.filter(m => m.availability === 'occupe');
+  const unavailableMembers = teamMembers.filter(m => ['conges', 'indisponible'].includes(m.availability));
+
   return (
     <MainLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Gestion d'Équipe
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Gérez les membres de votre équipe, leurs rôles et leur
-              disponibilité
+            <h1 className="text-3xl font-bold">Gestion d'Équipe</h1>
+            <p className="text-muted-foreground">
+              Assignation des membres, rôles et gestion des disponibilités
             </p>
           </div>
-          <div className="flex items-center gap-3 mt-4 lg:mt-0">
-            <Button variant="outline" size="sm">
-              <Filter className="mr-2 h-4 w-4" />
-              Filtrer
-            </Button>
-            <Button variant="outline" size="sm">
-              <Search className="mr-2 h-4 w-4" />
-              Rechercher
-            </Button>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Ajouter Membre
+          <div className="flex gap-2">
+            <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Assigner à un Projet
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Assigner un membre à un projet</DialogTitle>
+                  <DialogDescription>
+                    Maximum 5 projets par utilisateur. La charge totale ne peut dépasser 100%.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="member">Membre d'équipe *</Label>
+                    <Select 
+                      value={assignmentForm.memberId}
+                      onValueChange={(value) => setAssignmentForm(prev => ({ ...prev, memberId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un membre" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teamMembers
+                          .filter(m => m.availability !== 'conges')
+                          .map(member => {
+                            const workload = calculateTotalWorkload(member.id);
+                            const projectCount = member.projectAssignments.length;
+                            return (
+                              <SelectItem 
+                                key={member.id} 
+                                value={member.id}
+                                disabled={projectCount >= 5 || workload >= 100}
+                              >
+                                {member.name} ({workload}% - {projectCount}/5 projets)
+                              </SelectItem>
+                            );
+                          })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="project">Projet *</Label>
+                    <Select 
+                      value={assignmentForm.projectId}
+                      onValueChange={(value) => setAssignmentForm(prev => ({ ...prev, projectId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un projet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockProjects.map(project => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Rôle *</Label>
+                    <Select 
+                      value={assignmentForm.role}
+                      onValueChange={(value) => setAssignmentForm(prev => ({ ...prev, role: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un rôle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {predefinedRoles.map(role => (
+                          <SelectItem key={role.id} value={role.id}>
+                            {role.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="start-date">Date de début *</Label>
+                      <Input 
+                        id="start-date" 
+                        type="date"
+                        value={assignmentForm.startDate}
+                        onChange={(e) => setAssignmentForm(prev => ({ ...prev, startDate: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="end-date">Date de fin</Label>
+                      <Input 
+                        id="end-date" 
+                        type="date"
+                        value={assignmentForm.endDate}
+                        onChange={(e) => setAssignmentForm(prev => ({ ...prev, endDate: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="workload">Charge de travail (%)</Label>
+                    <Input 
+                      id="workload" 
+                      type="number" 
+                      min="10" 
+                      max="100" 
+                      step="10"
+                      value={assignmentForm.workloadPercentage}
+                      onChange={(e) => setAssignmentForm(prev => ({ ...prev, workloadPercentage: parseInt(e.target.value) || 50 }))}
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
+                      Annuler
+                    </Button>
+                    <Button onClick={handleAssignMember}>
+                      Assigner et Notifier
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            <Button variant="outline">
+              <Bell className="h-4 w-4 mr-2" />
+              Notifications
             </Button>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Membres Actifs
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">4</div>
-              <p className="text-xs text-green-600">1 en congés</p>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{teamMembers.length}</p>
+                  <p className="text-sm text-muted-foreground">Membres Total</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Productivité Moyenne
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">90%</div>
-              <p className="text-xs text-green-600">+5% ce mois</p>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <UserCheck className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{availableMembers.length}</p>
+                  <p className="text-sm text-muted-foreground">Disponibles</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Tâches en Cours
-              </CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">31</div>
-              <p className="text-xs text-muted-foreground">25 terminées</p>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Clock className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{busyMembers.length}</p>
+                  <p className="text-sm text-muted-foreground">Occupés</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Charge de Travail
-              </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">78SP</div>
-              <p className="text-xs text-muted-foreground">Sprint actuel</p>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Briefcase className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {teamMembers.reduce((total, member) => total + member.projectAssignments.length, 0)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Assignations</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="members" className="space-y-6">
+        <Tabs defaultValue="all" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="members">Membres</TabsTrigger>
+            <TabsTrigger value="all">Tous ({teamMembers.length})</TabsTrigger>
+            <TabsTrigger value="available">Disponibles ({availableMembers.length})</TabsTrigger>
+            <TabsTrigger value="busy">Occupés ({busyMembers.length})</TabsTrigger>
+            <TabsTrigger value="unavailable">Indisponibles ({unavailableMembers.length})</TabsTrigger>
             <TabsTrigger value="roles">Rôles & Permissions</TabsTrigger>
-            <TabsTrigger value="availability">Disponibilité</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="members" className="space-y-6">
-            {/* Team Members Grid */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <TabsContent value="all">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {teamMembers.map((member) => (
-                <Card key={member.id} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback>{member.avatar}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold">{member.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {member.role}
-                          </p>
-                        </div>
+                <TeamMemberCard key={member.id} member={member} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="available">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {availableMembers.map((member) => (
+                <TeamMemberCard key={member.id} member={member} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="busy">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {busyMembers.map((member) => (
+                <TeamMemberCard key={member.id} member={member} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="unavailable">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {unavailableMembers.map((member) => (
+                <TeamMemberCard key={member.id} member={member} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="roles">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {predefinedRoles.map((role) => (
+                <Card key={role.id}>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Shield className="h-5 w-5" />
                       </div>
-                      <Badge className={getStatusColor(member.status)}>
-                        {member.status}
-                      </Badge>
+                      <div>
+                        <CardTitle className="text-lg">{role.name}</CardTitle>
+                        <Badge className={role.color} variant="secondary">
+                          {role.permissions.length} permissions
+                        </Badge>
+                      </div>
                     </div>
                   </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    {/* Contact Info */}
+                  <CardContent>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mail className="h-3 w-3" />
-                        <span className="truncate">{member.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>{member.lastActive}</span>
-                      </div>
-                    </div>
-
-                    {/* Current Sprint Progress */}
-                    {member.status !== "Congés" && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Sprint Actuel</span>
-                          <span>
-                            {member.currentSprint.completedTasks}/
-                            {member.currentSprint.taskCount} tâches
-                          </span>
-                        </div>
-                        <Progress
-                          value={
-                            (member.currentSprint.completedTasks /
-                              member.currentSprint.taskCount) *
-                            100
-                          }
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>
-                            {member.currentSprint.completedPoints}/
-                            {member.currentSprint.storyPoints} SP
-                          </span>
-                          <span>{member.productivity}% productivité</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Skills */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium">Compétences</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {member.skills.map((skill) => (
-                          <Badge key={skill} variant="outline" className="text-xs">
-                            {skill}
-                          </Badge>
+                      <h4 className="font-medium text-sm">Permissions :</h4>
+                      <div className="grid grid-cols-1 gap-1">
+                        {role.permissions.map(permission => (
+                          <div key={permission} className="flex items-center gap-2 text-sm">
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                            <span className="capitalize">
+                              {permission.replace(/_/g, ' ')}
+                            </span>
+                          </div>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Mail className="mr-1 h-3 w-3" />
-                        Contact
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Settings className="h-3 w-3" />
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </TabsContent>
-
-          <TabsContent value="roles" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rôles SCRUM</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    {
-                      role: "Product Owner",
-                      count: 1,
-                      permissions: [
-                        "Gestion Product Backlog",
-                        "Définition critères acceptation",
-                        "Priorisation features",
-                      ],
-                    },
-                    {
-                      role: "Scrum Master",
-                      count: 0,
-                      permissions: [
-                        "Animation cérémonies",
-                        "Gestion impediments",
-                        "Coaching équipe",
-                      ],
-                    },
-                    {
-                      role: "Développeur",
-                      count: 2,
-                      permissions: [
-                        "Développement features",
-                        "Code review",
-                        "Estimation tâches",
-                      ],
-                    },
-                    {
-                      role: "Designer",
-                      count: 1,
-                      permissions: [
-                        "Design UI/UX",
-                        "Prototypage",
-                        "Tests utilisateurs",
-                      ],
-                    },
-                    {
-                      role: "QA Tester",
-                      count: 1,
-                      permissions: [
-                        "Tests manuels/automatisés",
-                        "Validation qualité",
-                        "Reporting bugs",
-                      ],
-                    },
-                  ].map((roleInfo) => (
-                    <div
-                      key={roleInfo.role}
-                      className="flex items-start justify-between p-3 border rounded-lg"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{roleInfo.role}</h4>
-                          <Badge variant="outline">{roleInfo.count}</Badge>
-                        </div>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {roleInfo.permissions.map((permission) => (
-                            <li key={permission} className="flex items-center gap-1">
-                              <CheckCircle className="h-3 w-3 text-green-600" />
-                              {permission}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gestion des Permissions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-blue-800">
-                          Permissions Admin
-                        </h4>
-                        <p className="text-sm text-blue-600">
-                          Accès complet à tous les modules
-                        </p>
-                      </div>
-                      <Badge className="bg-blue-100 text-blue-800">
-                        1 utilisateur
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-green-800">
-                          Permissions Équipe
-                        </h4>
-                        <p className="text-sm text-green-600">
-                          Accès projets assignés et outils productivité
-                        </p>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800">
-                        4 utilisateurs
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-800">
-                          Permissions Lecture
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          Consultation uniquement
-                        </p>
-                      </div>
-                      <Badge className="bg-gray-100 text-gray-800">
-                        0 utilisateur
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <Button className="w-full">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configurer Permissions
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="availability" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Disponibilité Cette Semaine</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {teamMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback className="text-xs">
-                              {member.avatar}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">{member.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {member.role}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          {member.status === "Congés" ? (
-                            <Badge className="bg-red-100 text-red-800">
-                              Congés
-                            </Badge>
-                          ) : (
-                            <div className="space-y-1">
-                              <div className="text-sm font-medium">40h/40h</div>
-                              <Progress value={100} className="w-20 h-2" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Planification Future</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <Calendar className="h-4 w-4 text-orange-600" />
-                      <div className="flex-1">
-                        <div className="font-medium text-orange-800">
-                          Julie Petit - Retour de congés
-                        </div>
-                        <div className="text-sm text-orange-600">
-                          Lundi 19 Février 2024
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <Star className="h-4 w-4 text-blue-600" />
-                      <div className="flex-1">
-                        <div className="font-medium text-blue-800">
-                          Formation SCRUM Master
-                        </div>
-                        <div className="text-sm text-blue-600">
-                          Thomas Moreau - 25-26 Février
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <Plus className="h-4 w-4 text-green-600" />
-                      <div className="flex-1">
-                        <div className="font-medium text-green-800">
-                          Nouveau développeur
-                        </div>
-                        <div className="text-sm text-green-600">
-                          Arrivée prévue Mars 2024
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button variant="outline" className="w-full">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Voir Planning Complet
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
         </Tabs>
+
+        {/* Remove Assignment Dialog */}
+        <AlertDialog open={!!removeAssignmentId} onOpenChange={() => setRemoveAssignmentId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Retirer l'assignation</AlertDialogTitle>
+              <AlertDialogDescription>
+                Êtes-vous sûr de vouloir retirer ce membre du projet ? 
+                Une notification sera automatiquement envoyée.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRemoveAssignment}>
+                Retirer et Notifier
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </MainLayout>
   );
