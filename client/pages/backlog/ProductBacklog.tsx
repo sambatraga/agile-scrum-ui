@@ -309,15 +309,15 @@ export default function ProductBacklog() {
   const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
   const [deleteStoryId, setDeleteStoryId] = useState<string | null>(null);
   const [draggedStory, setDraggedStory] = useState<string | null>(null);
-
+  
   // UX improvements
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedSprints, setExpandedSprints] = useState<Set<string>>(new Set());
   const [expandedCriteria, setExpandedCriteria] = useState<Set<string>>(new Set());
-
+  
   const itemsPerPage = 6;
-
+  
   const [storyForm, setStoryForm] = useState({
     asA: '',
     iWant: '',
@@ -342,7 +342,7 @@ export default function ProductBacklog() {
     if (selectedTags.length === 0) return true;
     return selectedTags.some(tag => story.tags.includes(tag));
   });
-
+  
   // Tri des user stories par priorité puis par ordre
   const sortedStories = projectUserStories
     .sort((a, b) => {
@@ -367,7 +367,7 @@ export default function ProductBacklog() {
     const projectSprints = sprints.filter(s => s.projectId === selectedProjectId);
     const completedSprints = projectSprints.filter(s => s.status === 'Completed');
     if (completedSprints.length === 0) return 0;
-
+    
     const recentSprints = completedSprints.slice(-3);
     const totalVelocity = recentSprints.reduce((sum, sprint) => sum + sprint.velocity, 0);
     return Math.round(totalVelocity / recentSprints.length);
@@ -462,9 +462,9 @@ export default function ProductBacklog() {
     };
 
     setSprints(prev => [...prev, newSprint]);
-
+    
     // Mettre à jour le statut des stories sélectionnées
-    setUserStories(prev => prev.map(story =>
+    setUserStories(prev => prev.map(story => 
       sprintForm.selectedStories.includes(story.id)
         ? { ...story, status: 'Ready' as const }
         : story
@@ -482,8 +482,8 @@ export default function ProductBacklog() {
   };
 
   const changeStoryStatus = (storyId: string, newStatus: UserStory['status']) => {
-    setUserStories(prev => prev.map(story =>
-      story.id === storyId
+    setUserStories(prev => prev.map(story => 
+      story.id === storyId 
         ? { ...story, status: newStatus, updatedAt: new Date().toISOString().split('T')[0] }
         : story
     ));
@@ -492,9 +492,9 @@ export default function ProductBacklog() {
   const moveStory = useCallback((storyId: string, direction: 'up' | 'down') => {
     const currentProjectStories = [...sortedStories];
     const storyIndex = currentProjectStories.findIndex(s => s.id === storyId);
-
+    
     if (storyIndex === -1) return;
-
+    
     const newIndex = direction === 'up' ? storyIndex - 1 : storyIndex + 1;
     if (newIndex < 0 || newIndex >= currentProjectStories.length) return;
 
@@ -533,7 +533,7 @@ export default function ProductBacklog() {
 
   const handleDrop = (e: React.DragEvent, targetStoryId: string) => {
     e.preventDefault();
-
+    
     if (!draggedStory || draggedStory === targetStoryId) {
       setDraggedStory(null);
       return;
@@ -566,7 +566,7 @@ export default function ProductBacklog() {
     }));
 
     setDraggedStory(null);
-
+    
     toast({
       title: "Story réorganisée",
       description: "L'ordre des stories a été mis à jour par glisser-déposer"
@@ -618,7 +618,7 @@ export default function ProductBacklog() {
   };
 
   const UserStoryCard = ({ story, showDragHandle = true }: { story: UserStory, showDragHandle?: boolean }) => (
-    <Card
+    <Card 
       className={`hover:shadow-md transition-shadow ${draggedStory === story.id ? 'opacity-50' : ''}`}
       draggable={showDragHandle}
       onDragStart={(e) => showDragHandle && handleDragStart(e, story.id)}
@@ -630,22 +630,22 @@ export default function ProductBacklog() {
           <div className="flex items-start gap-2 flex-1">
             {showDragHandle && (
               <div className="flex flex-col gap-1 mt-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
                   className="h-6 w-6 p-0 hover:bg-gray-100"
                   onClick={() => moveStory(story.id, 'up')}
                   title="Déplacer vers le haut"
                 >
                   <ArrowUp className="h-3 w-3" />
                 </Button>
-                <GripVertical
-                  className="h-4 w-4 text-muted-foreground cursor-move"
+                <GripVertical 
+                  className="h-4 w-4 text-muted-foreground cursor-move" 
                   title="Glisser-déposer pour réorganiser"
                 />
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
                   className="h-6 w-6 p-0 hover:bg-gray-100"
                   onClick={() => moveStory(story.id, 'down')}
                   title="Déplacer vers le bas"
@@ -708,7 +708,7 @@ export default function ProductBacklog() {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem
+              <DropdownMenuItem 
                 className="text-red-600"
                 onClick={() => setDeleteStoryId(story.id)}
               >
@@ -771,12 +771,12 @@ export default function ProductBacklog() {
       if (selectedTags.length === 0) return true;
       return selectedTags.some(tag => story.tags.includes(tag));
     });
-
+    
     const totalPoints = sprintStories.reduce((sum, story) => sum + story.storyPoints, 0);
     const completedPoints = sprintStories
       .filter(s => s.status === 'Done')
       .reduce((sum, story) => sum + story.storyPoints, 0);
-
+    
     const isExpanded = expandedSprints.has(sprint.id);
 
     return (
@@ -841,7 +841,7 @@ export default function ProductBacklog() {
               <p className="text-sm text-muted-foreground">Progression</p>
             </div>
           </div>
-
+          
           {isExpanded && sprintStories.length > 0 && (
             <div className="space-y-2">
               <h4 className="font-medium">
@@ -859,7 +859,7 @@ export default function ProductBacklog() {
               </div>
             </div>
           )}
-
+          
           {isExpanded && sprintStories.length === 0 && selectedTags.length > 0 && (
             <div className="text-center py-4">
               <p className="text-sm text-muted-foreground">
@@ -871,8 +871,6 @@ export default function ProductBacklog() {
       </Card>
     );
   };
-
-
 
   const averageVelocity = calculateAverageVelocity();
   const readyStories = projectUserStories.filter(s => s.status === 'Ready');
@@ -907,7 +905,7 @@ export default function ProductBacklog() {
             </Select>
           </div>
 
-          {/* Header with view mode toggle */}
+          {/* Header */}
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">Product & Sprint Backlog</h1>
@@ -917,284 +915,283 @@ export default function ProductBacklog() {
               </p>
             </div>
             <div className="flex gap-2">
-            <Dialog open={isCreateStoryOpen} onOpenChange={setIsCreateStoryOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouvelle User Story
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Créer une User Story</DialogTitle>
-                  <DialogDescription>
-                    Format standard: "En tant que [qui], je veux [quoi] pour [pourquoi]"
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="as-a">En tant que... *</Label>
-                      <Input
-                        id="as-a"
-                        placeholder="Ex: utilisateur, administrateur, client..."
-                        value={storyForm.asA}
-                        onChange={(e) => setStoryForm(prev => ({ ...prev, asA: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="i-want">Je veux... *</Label>
-                      <Input
-                        id="i-want"
-                        placeholder="Ex: me connecter, consulter mes commandes..."
-                        value={storyForm.iWant}
-                        onChange={(e) => setStoryForm(prev => ({ ...prev, iWant: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="so-that">Pour... *</Label>
-                      <Input
-                        id="so-that"
-                        placeholder="Ex: accéder à mon compte, suivre mes achats..."
-                        value={storyForm.soThat}
-                        onChange={(e) => setStoryForm(prev => ({ ...prev, soThat: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Critères d'acceptation</Label>
-                    {storyForm.acceptanceCriteria.map((criteria, index) => (
-                      <div key={index} className="flex gap-2">
+              <Dialog open={isCreateStoryOpen} onOpenChange={setIsCreateStoryOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nouvelle User Story
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Créer une User Story</DialogTitle>
+                    <DialogDescription>
+                      Format standard: "En tant que [qui], je veux [quoi] pour [pourquoi]"
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="as-a">En tant que... *</Label>
                         <Input
-                          placeholder="Critère d'acceptation..."
-                          value={criteria}
-                          onChange={(e) => {
-                            const newCriteria = [...storyForm.acceptanceCriteria];
-                            newCriteria[index] = e.target.value;
-                            setStoryForm(prev => ({ ...prev, acceptanceCriteria: newCriteria }));
-                          }}
+                          id="as-a"
+                          placeholder="Ex: utilisateur, administrateur, client..."
+                          value={storyForm.asA}
+                          onChange={(e) => setStoryForm(prev => ({ ...prev, asA: e.target.value }))}
                         />
-                        {index === storyForm.acceptanceCriteria.length - 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setStoryForm(prev => ({
-                              ...prev,
-                              acceptanceCriteria: [...prev.acceptanceCriteria, '']
-                            }))}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="priority">Priorité</Label>
-                      <Select
-                        value={storyForm.priority}
-                        onValueChange={(value: 'High' | 'Medium' | 'Low') =>
-                          setStoryForm(prev => ({ ...prev, priority: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="High">High</SelectItem>
-                          <SelectItem value="Medium">Medium</SelectItem>
-                          <SelectItem value="Low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2">
+                        <Label htmlFor="i-want">Je veux... *</Label>
+                        <Input
+                          id="i-want"
+                          placeholder="Ex: me connecter, consulter mes commandes..."
+                          value={storyForm.iWant}
+                          onChange={(e) => setStoryForm(prev => ({ ...prev, iWant: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="so-that">Pour... *</Label>
+                        <Input
+                          id="so-that"
+                          placeholder="Ex: accéder à mon compte, suivre mes achats..."
+                          value={storyForm.soThat}
+                          onChange={(e) => setStoryForm(prev => ({ ...prev, soThat: e.target.value }))}
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="story-points">Story Points (Fibonacci)</Label>
-                      <Select
-                        value={storyForm.storyPoints.toString()}
-                        onValueChange={(value) =>
-                          setStoryForm(prev => ({ ...prev, storyPoints: parseInt(value) as any }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {fibonacciPoints.map(point => (
-                            <SelectItem key={point} value={point.toString()}>
-                              {point} point{point > 1 ? 's' : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="business-value">Valeur métier (1-10)</Label>
-                      <Input
-                        id="business-value"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={storyForm.businessValue}
-                        onChange={(e) => setStoryForm(prev => ({
-                          ...prev,
-                          businessValue: Math.max(1, Math.min(10, parseInt(e.target.value) || 5))
-                        }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="tags">Tags (séparés par des virgules)</Label>
-                    <Input
-                      id="tags"
-                      placeholder="Ex: authentication, security, ui..."
-                      value={storyForm.tags}
-                      onChange={(e) => setStoryForm(prev => ({ ...prev, tags: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-4">
-                    <Button variant="outline" onClick={() => setIsCreateStoryOpen(false)}>
-                      Annuler
-                    </Button>
-                    <Button onClick={handleCreateStory}>
-                      Créer la User Story
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isCreateSprintOpen} onOpenChange={setIsCreateSprintOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Nouveau Sprint
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Créer un Sprint</DialogTitle>
-                  <DialogDescription>
-                    Durée: 1-4 semaines. Vélocité moyenne: {averageVelocity} points
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="sprint-name">Nom du Sprint *</Label>
-                      <Input
-                        id="sprint-name"
-                        placeholder="Ex: Sprint 3 - Paiements"
-                        value={sprintForm.name}
-                        onChange={(e) => setSprintForm(prev => ({ ...prev, name: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="start-date">Date de début *</Label>
-                      <Input
-                        id="start-date"
-                        type="date"
-                        value={sprintForm.startDate}
-                        onChange={(e) => setSprintForm(prev => ({ ...prev, startDate: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="duration">Durée (semaines)</Label>
-                      <Select
-                        value={sprintForm.duration.toString()}
-                        onValueChange={(value) =>
-                          setSprintForm(prev => ({ ...prev, duration: parseInt(value) }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">1 semaine</SelectItem>
-                          <SelectItem value="2">2 semaines</SelectItem>
-                          <SelectItem value="3">3 semaines</SelectItem>
-                          <SelectItem value="4">4 semaines</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="capacity">Capacité (heures)</Label>
-                      <Input
-                        id="capacity"
-                        type="number"
-                        min="20"
-                        max="200"
-                        value={sprintForm.capacity}
-                        onChange={(e) => setSprintForm(prev => ({
-                          ...prev,
-                          capacity: parseInt(e.target.value) || 80
-                        }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Sélectionner les User Stories</Label>
-                    <div className="max-h-60 overflow-y-auto border rounded-lg p-2">
-                      {readyStories.map(story => (
-                        <div key={story.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded">
-                          <input
-                            type="checkbox"
-                            id={`story-${story.id}`}
-                            checked={sprintForm.selectedStories.includes(story.id)}
+                      <Label>Critères d'acceptation</Label>
+                      {storyForm.acceptanceCriteria.map((criteria, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            placeholder="Critère d'acceptation..."
+                            value={criteria}
                             onChange={(e) => {
-                              if (e.target.checked) {
-                                setSprintForm(prev => ({
-                                  ...prev,
-                                  selectedStories: [...prev.selectedStories, story.id]
-                                }));
-                              } else {
-                                setSprintForm(prev => ({
-                                  ...prev,
-                                  selectedStories: prev.selectedStories.filter(id => id !== story.id)
-                                }));
-                              }
+                              const newCriteria = [...storyForm.acceptanceCriteria];
+                              newCriteria[index] = e.target.value;
+                              setStoryForm(prev => ({ ...prev, acceptanceCriteria: newCriteria }));
                             }}
-                            className="rounded"
                           />
-                          <label htmlFor={`story-${story.id}`} className="flex-1 text-sm cursor-pointer">
-                            <span className="font-medium">{story.storyPoints} pts</span> - {formatUserStory(story)}
-                          </label>
+                          {index === storyForm.acceptanceCriteria.length - 1 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setStoryForm(prev => ({ 
+                                ...prev, 
+                                acceptanceCriteria: [...prev.acceptanceCriteria, ''] 
+                              }))}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       ))}
-                      {readyStories.length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          Aucune user story prête. Marquez des stories comme "Ready" d'abord.
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="priority">Priorité</Label>
+                        <Select 
+                          value={storyForm.priority}
+                          onValueChange={(value: 'High' | 'Medium' | 'Low') => 
+                            setStoryForm(prev => ({ ...prev, priority: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="High">High</SelectItem>
+                            <SelectItem value="Medium">Medium</SelectItem>
+                            <SelectItem value="Low">Low</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="story-points">Story Points (Fibonacci)</Label>
+                        <Select 
+                          value={storyForm.storyPoints.toString()}
+                          onValueChange={(value) => 
+                            setStoryForm(prev => ({ ...prev, storyPoints: parseInt(value) as any }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {fibonacciPoints.map(point => (
+                              <SelectItem key={point} value={point.toString()}>
+                                {point} point{point > 1 ? 's' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="business-value">Valeur métier (1-10)</Label>
+                        <Input
+                          id="business-value"
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={storyForm.businessValue}
+                          onChange={(e) => setStoryForm(prev => ({ 
+                            ...prev, 
+                            businessValue: Math.max(1, Math.min(10, parseInt(e.target.value) || 5))
+                          }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="tags">Tags (séparés par des virgules)</Label>
+                      <Input
+                        id="tags"
+                        placeholder="Ex: authentication, security, ui..."
+                        value={storyForm.tags}
+                        onChange={(e) => setStoryForm(prev => ({ ...prev, tags: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button variant="outline" onClick={() => setIsCreateStoryOpen(false)}>
+                        Annuler
+                      </Button>
+                      <Button onClick={handleCreateStory}>
+                        Créer la User Story
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={isCreateSprintOpen} onOpenChange={setIsCreateSprintOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Nouveau Sprint
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Créer un Sprint</DialogTitle>
+                    <DialogDescription>
+                      Durée: 1-4 semaines. Vélocité moyenne: {averageVelocity} points
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="sprint-name">Nom du Sprint *</Label>
+                        <Input
+                          id="sprint-name"
+                          placeholder="Ex: Sprint 3 - Paiements"
+                          value={sprintForm.name}
+                          onChange={(e) => setSprintForm(prev => ({ ...prev, name: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="start-date">Date de début *</Label>
+                        <Input
+                          id="start-date"
+                          type="date"
+                          value={sprintForm.startDate}
+                          onChange={(e) => setSprintForm(prev => ({ ...prev, startDate: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="duration">Durée (semaines)</Label>
+                        <Select 
+                          value={sprintForm.duration.toString()}
+                          onValueChange={(value) => 
+                            setSprintForm(prev => ({ ...prev, duration: parseInt(value) }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 semaine</SelectItem>
+                            <SelectItem value="2">2 semaines</SelectItem>
+                            <SelectItem value="3">3 semaines</SelectItem>
+                            <SelectItem value="4">4 semaines</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="capacity">Capacité (heures)</Label>
+                        <Input
+                          id="capacity"
+                          type="number"
+                          min="20"
+                          max="200"
+                          value={sprintForm.capacity}
+                          onChange={(e) => setSprintForm(prev => ({ 
+                            ...prev, 
+                            capacity: parseInt(e.target.value) || 80
+                          }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Sélectionner les User Stories</Label>
+                      <div className="max-h-60 overflow-y-auto border rounded-lg p-2">
+                        {readyStories.map(story => (
+                          <div key={story.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded">
+                            <input
+                              type="checkbox"
+                              id={`story-${story.id}`}
+                              checked={sprintForm.selectedStories.includes(story.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSprintForm(prev => ({ 
+                                    ...prev, 
+                                    selectedStories: [...prev.selectedStories, story.id] 
+                                  }));
+                                } else {
+                                  setSprintForm(prev => ({ 
+                                    ...prev, 
+                                    selectedStories: prev.selectedStories.filter(id => id !== story.id) 
+                                  }));
+                                }
+                              }}
+                              className="rounded"
+                            />
+                            <label htmlFor={`story-${story.id}`} className="flex-1 text-sm cursor-pointer">
+                              <span className="font-medium">{story.storyPoints} pts</span> - {formatUserStory(story)}
+                            </label>
+                          </div>
+                        ))}
+                        {readyStories.length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Aucune user story prête. Marquez des stories comme "Ready" d'abord.
+                          </p>
+                        )}
+                      </div>
+                      {sprintForm.selectedStories.length > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          {sprintForm.selectedStories.length} stories sélectionnées 
+                          ({readyStories.filter(s => sprintForm.selectedStories.includes(s.id))
+                            .reduce((sum, s) => sum + s.storyPoints, 0)} points total)
                         </p>
                       )}
                     </div>
-                    {sprintForm.selectedStories.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {sprintForm.selectedStories.length} stories sélectionnées
-                        ({readyStories.filter(s => sprintForm.selectedStories.includes(s.id))
-                          .reduce((sum, s) => sum + s.storyPoints, 0)} points total)
-                      </p>
-                    )}
-                  </div>
 
-                  <div className="flex justify-end gap-2 pt-4">
-                    <Button variant="outline" onClick={() => setIsCreateSprintOpen(false)}>
-                      Annuler
-                    </Button>
-                    <Button onClick={handleCreateSprint}>
-                      Créer le Sprint
-                    </Button>
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button variant="outline" onClick={() => setIsCreateSprintOpen(false)}>
+                        Annuler
+                      </Button>
+                      <Button onClick={handleCreateSprint}>
+                        Créer le Sprint
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-              </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
@@ -1333,7 +1330,7 @@ export default function ProductBacklog() {
                   </p>
                 </div>
               </div>
-
+              
               <div className="space-y-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                   {paginatedStories.map(story => (
@@ -1347,7 +1344,7 @@ export default function ProductBacklog() {
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
-                          <PaginationPrevious
+                          <PaginationPrevious 
                             href="#"
                             onClick={(e) => {
                               e.preventDefault();
@@ -1356,7 +1353,7 @@ export default function ProductBacklog() {
                             className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                           />
                         </PaginationItem>
-
+                        
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                           <PaginationItem key={page}>
                             <PaginationLink
@@ -1371,7 +1368,7 @@ export default function ProductBacklog() {
                             </PaginationLink>
                           </PaginationItem>
                         ))}
-
+                        
                         <PaginationItem>
                           <PaginationNext
                             href="#"
@@ -1395,7 +1392,7 @@ export default function ProductBacklog() {
                     {selectedTags.length > 0 ? 'Aucune story pour les tags sélectionnés' : 'Aucune User Story'}
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    {selectedTags.length > 0
+                    {selectedTags.length > 0 
                       ? 'Essayez de modifier vos filtres ou créez une nouvelle story.'
                       : 'Créez votre première user story au format standard.'
                     }
@@ -1426,7 +1423,7 @@ export default function ProductBacklog() {
                   Les sprints sont figés après démarrage
                 </p>
               </div>
-
+              
               {projectSprints.map(sprint => {
                 // Filter sprint stories by selected tags
                 const filteredSprintStories = userStories.filter(s => {
@@ -1434,12 +1431,12 @@ export default function ProductBacklog() {
                   if (selectedTags.length === 0) return true;
                   return selectedTags.some(tag => s.tags.includes(tag));
                 });
-
+                
                 // Only show sprint if it has stories matching the filter or no filter is applied
                 if (selectedTags.length > 0 && filteredSprintStories.length === 0) {
                   return null;
                 }
-
+                
                 return (
                   <SprintCard key={sprint.id} sprint={sprint} />
                 );
@@ -1607,7 +1604,7 @@ export default function ProductBacklog() {
             <AlertDialogHeader>
               <AlertDialogTitle>Supprimer la User Story</AlertDialogTitle>
               <AlertDialogDescription>
-                Êtes-vous sûr de vouloir supprimer cette user story ?
+                Êtes-vous sûr de vouloir supprimer cette user story ? 
                 Cette action est irréversible.
               </AlertDialogDescription>
             </AlertDialogHeader>
