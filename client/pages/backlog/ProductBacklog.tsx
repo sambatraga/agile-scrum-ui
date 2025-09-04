@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { toast } from "@/hooks/use-toast";
 import {
   Plus,
@@ -35,7 +37,14 @@ import {
   Users,
   Calendar,
   TrendingUp,
-  Settings
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  FolderOpen,
+  Columns3,
+  List,
+  Filter,
+  X
 } from "lucide-react";
 
 interface UserStory {
@@ -302,6 +311,16 @@ export default function ProductBacklog() {
   const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
   const [deleteStoryId, setDeleteStoryId] = useState<string | null>(null);
   const [draggedStory, setDraggedStory] = useState<string | null>(null);
+
+  // UX improvements
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [expandedSprints, setExpandedSprints] = useState<Set<string>>(new Set());
+  const [expandedCriteria, setExpandedCriteria] = useState<Set<string>>(new Set());
+
+  const itemsPerPage = 6;
+
   const [storyForm, setStoryForm] = useState({
     asA: '',
     iWant: '',
@@ -320,8 +339,12 @@ export default function ProductBacklog() {
     selectedStories: [] as string[]
   });
 
-  // Filtrer les user stories par projet sélectionné
-  const projectUserStories = userStories.filter(story => story.projectId === selectedProjectId);
+  // Filtrer les user stories par projet sélectionné et tags
+  const projectUserStories = userStories.filter(story => {
+    if (story.projectId !== selectedProjectId) return false;
+    if (selectedTags.length === 0) return true;
+    return selectedTags.some(tag => story.tags.includes(tag));
+  });
 
   // Tri des user stories par priorité puis par ordre
   const sortedStories = projectUserStories
@@ -331,6 +354,16 @@ export default function ProductBacklog() {
       }
       return a.order - b.order;
     });
+
+  // Pagination
+  const totalPages = Math.ceil(sortedStories.length / itemsPerPage);
+  const paginatedStories = sortedStories.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Get all available tags for filtering
+  const availableTags = [...new Set(projectUserStories.flatMap(story => story.tags))].sort();
 
   // Calcul de la vélocité sur les 3 derniers sprints du projet sélectionné
   const calculateAverageVelocity = () => {
@@ -460,24 +493,29 @@ export default function ProductBacklog() {
   };
 
   const moveStory = useCallback((storyId: string, direction: 'up' | 'down') => {
-    const currentProjectStories = sortedStories;
+    const currentProjectStories = [...sortedStories];
     const storyIndex = currentProjectStories.findIndex(s => s.id === storyId);
+
     if (storyIndex === -1) return;
 
     const newIndex = direction === 'up' ? storyIndex - 1 : storyIndex + 1;
     if (newIndex < 0 || newIndex >= currentProjectStories.length) return;
 
-    const targetStory = currentProjectStories[newIndex];
-    const currentStory = currentProjectStories[storyIndex];
+    // Swap the stories in the array
+    const [movedStory] = currentProjectStories.splice(storyIndex, 1);
+    currentProjectStories.splice(newIndex, 0, movedStory);
 
+    // Update the order property for all affected stories
+    const updatedStories = currentProjectStories.map((story, index) => ({
+      ...story,
+      order: index + 1,
+      updatedAt: new Date().toISOString().split('T')[0]
+    }));
+
+    // Update the global state
     setUserStories(prev => prev.map(story => {
-      if (story.id === storyId) {
-        return { ...story, order: targetStory.order, updatedAt: new Date().toISOString().split('T')[0] };
-      }
-      if (story.id === targetStory.id) {
-        return { ...story, order: currentStory.order, updatedAt: new Date().toISOString().split('T')[0] };
-      }
-      return story;
+      const updatedStory = updatedStories.find(us => us.id === story.id);
+      return updatedStory || story;
     }));
 
     toast({
@@ -504,25 +542,27 @@ export default function ProductBacklog() {
       return;
     }
 
-    const draggedIndex = sortedStories.findIndex(s => s.id === draggedStory);
-    const targetIndex = sortedStories.findIndex(s => s.id === targetStoryId);
+    const currentProjectStories = [...sortedStories];
+    const draggedIndex = currentProjectStories.findIndex(s => s.id === draggedStory);
+    const targetIndex = currentProjectStories.findIndex(s => s.id === targetStoryId);
 
     if (draggedIndex === -1 || targetIndex === -1) {
       setDraggedStory(null);
       return;
     }
 
-    const newStories = [...sortedStories];
-    const [draggedItem] = newStories.splice(draggedIndex, 1);
-    newStories.splice(targetIndex, 0, draggedItem);
+    // Move the dragged item to the target position
+    const [draggedItem] = currentProjectStories.splice(draggedIndex, 1);
+    currentProjectStories.splice(targetIndex, 0, draggedItem);
 
-    // Recalculer les ordres
-    const updatedStories = newStories.map((story, index) => ({
+    // Recalculate orders for all project stories
+    const updatedStories = currentProjectStories.map((story, index) => ({
       ...story,
       order: index + 1,
       updatedAt: new Date().toISOString().split('T')[0]
     }));
 
+    // Update the global state
     setUserStories(prev => prev.map(story => {
       const updatedStory = updatedStories.find(us => us.id === story.id);
       return updatedStory || story;
@@ -532,12 +572,52 @@ export default function ProductBacklog() {
 
     toast({
       title: "Story réorganisée",
-      description: "L'ordre des stories a été mis à jour"
+      description: "L'ordre des stories a été mis à jour par glisser-déposer"
     });
   };
 
   const formatUserStory = (story: UserStory) => {
     return `En tant que ${story.asA}, je veux ${story.iWant} pour ${story.soThat}`;
+  };
+
+  const toggleSprintExpansion = (sprintId: string) => {
+    setExpandedSprints(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sprintId)) {
+        newSet.delete(sprintId);
+      } else {
+        newSet.add(sprintId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleCriteriaExpansion = (storyId: string) => {
+    setExpandedCriteria(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(storyId)) {
+        newSet.delete(storyId);
+      } else {
+        newSet.add(storyId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleTagFilter = (tag: string) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag);
+      } else {
+        return [...prev, tag];
+      }
+    });
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  const clearTagFilters = () => {
+    setSelectedTags([]);
+    setCurrentPage(1);
   };
 
   const UserStoryCard = ({ story, showDragHandle = true }: { story: UserStory, showDragHandle?: boolean }) => (
@@ -664,20 +744,24 @@ export default function ProductBacklog() {
         </div>
 
         {story.acceptanceCriteria.length > 0 && (
-          <div>
-            <p className="text-xs font-medium mb-1">Critères d'acceptation:</p>
-            <ul className="text-xs text-muted-foreground space-y-1">
-              {story.acceptanceCriteria.slice(0, 2).map((criteria, index) => (
-                <li key={index} className="flex items-start gap-1">
-                  <span>•</span>
-                  <span className="line-clamp-1">{criteria}</span>
-                </li>
-              ))}
-              {story.acceptanceCriteria.length > 2 && (
-                <li className="text-blue-600">+{story.acceptanceCriteria.length - 2} autres...</li>
-              )}
-            </ul>
-          </div>
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-auto p-0 text-xs font-medium justify-start">
+                <ChevronDown className="h-3 w-3 mr-1" />
+                Critères d'acceptation ({story.acceptanceCriteria.length})
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <ul className="text-xs text-muted-foreground space-y-1 pl-2 border-l-2 border-blue-200">
+                {story.acceptanceCriteria.map((criteria, index) => (
+                  <li key={index} className="flex items-start gap-1">
+                    <span className="text-blue-500">•</span>
+                    <span>{criteria}</span>
+                  </li>
+                ))}
+              </ul>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </CardContent>
     </Card>
@@ -690,15 +774,26 @@ export default function ProductBacklog() {
       .filter(s => s.status === 'Done')
       .reduce((sum, story) => sum + story.storyPoints, 0);
 
+    const isExpanded = expandedSprints.has(sprint.id);
+
     return (
       <Card className="mb-4">
-        <CardHeader>
+        <CardHeader className="cursor-pointer" onClick={() => toggleSprintExpansion(sprint.id)}>
           <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-lg">{sprint.name}</CardTitle>
-              <CardDescription>
-                {sprint.startDate} - {sprint.endDate} ({sprint.duration} semaines)
-              </CardDescription>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronUp className="h-4 w-4" />
+                )}
+              </Button>
+              <div>
+                <CardTitle className="text-lg">{sprint.name}</CardTitle>
+                <CardDescription>
+                  {sprint.startDate} - {sprint.endDate} ({sprint.duration} semaines)
+                </CardDescription>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant={sprint.status === 'Active' ? 'default' : 'secondary'}>
@@ -732,7 +827,7 @@ export default function ProductBacklog() {
             </div>
           </div>
 
-          {sprintStories.length > 0 && (
+          {isExpanded && sprintStories.length > 0 && (
             <div className="space-y-2">
               <h4 className="font-medium">Stories assignées:</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -747,6 +842,42 @@ export default function ProductBacklog() {
     );
   };
 
+  const KanbanView = () => {
+    const statusColumns = [
+      { status: 'Draft' as const, title: 'Brouillon', color: 'bg-gray-50' },
+      { status: 'Ready' as const, title: 'Prêt', color: 'bg-blue-50' },
+      { status: 'In Progress' as const, title: 'En Cours', color: 'bg-yellow-50' },
+      { status: 'Done' as const, title: 'Terminé', color: 'bg-green-50' },
+      { status: 'Rejected' as const, title: 'Rejeté', color: 'bg-red-50' }
+    ];
+
+    return (
+      <div className="grid grid-cols-5 gap-4">
+        {statusColumns.map(column => {
+          const columnStories = sortedStories.filter(story => story.status === column.status);
+          return (
+            <div key={column.status} className={`${column.color} p-4 rounded-lg min-h-[600px]`}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium">{column.title}</h3>
+                <Badge variant="secondary">{columnStories.length}</Badge>
+              </div>
+              <div className="space-y-3">
+                {columnStories.map(story => (
+                  <UserStoryCard key={story.id} story={story} showDragHandle={false} />
+                ))}
+              </div>
+              {columnStories.length === 0 && (
+                <div className="text-center text-muted-foreground text-sm mt-8">
+                  Aucune story
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const averageVelocity = calculateAverageVelocity();
   const readyStories = projectUserStories.filter(s => s.status === 'Ready');
   const projectSprints = sprints.filter(s => s.projectId === selectedProjectId);
@@ -755,32 +886,65 @@ export default function ProductBacklog() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="flex-1">
-            <div className="flex items-center gap-4 mb-2">
-              <h1 className="text-3xl font-bold">Product & Sprint Backlog</h1>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="project-select" className="text-sm font-medium">Projet:</Label>
-                <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-                  <SelectTrigger className="w-64">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map(project => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <p className="text-muted-foreground">
-              {selectedProject ? `${selectedProject.description} - ` : ''}
-              Gestion des user stories format standard et planification des sprints
-            </p>
+        <div className="space-y-4">
+          {/* Project Selector - Prominent position */}
+          <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg border">
+            <FolderOpen className="h-5 w-5 text-blue-600" />
+            <Label htmlFor="project-select" className="text-sm font-medium">Projet actuel:</Label>
+            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+              <SelectTrigger className="w-80">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map(project => (
+                  <SelectItem key={project.id} value={project.id}>
+                    <div className="flex items-center gap-2">
+                      <FolderOpen className="h-4 w-4" />
+                      <span>{project.name}</span>
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        {project.status}
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex gap-2">
+
+          {/* Header with view mode toggle */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Product & Sprint Backlog</h1>
+              <p className="text-muted-foreground">
+                {selectedProject ? `${selectedProject.description} - ` : ''}
+                Gestion des user stories format standard et planification des sprints
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="px-3"
+                >
+                  <List className="h-4 w-4 mr-1" />
+                  Liste
+                </Button>
+                <Button
+                  variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('kanban')}
+                  className="px-3"
+                >
+                  <Columns3 className="h-4 w-4 mr-1" />
+                  Kanban
+                </Button>
+              </div>
+
+              {/* Create buttons */}
+              <div className="flex gap-2">
             <Dialog open={isCreateStoryOpen} onOpenChange={setIsCreateStoryOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -1058,6 +1222,8 @@ export default function ProductBacklog() {
                 </div>
               </DialogContent>
             </Dialog>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1135,6 +1301,44 @@ export default function ProductBacklog() {
           </Card>
         </div>
 
+        {/* Tag Filtering */}
+        {availableTags.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  <CardTitle className="text-sm">Filtrer par tags</CardTitle>
+                </div>
+                {selectedTags.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={clearTagFilters}>
+                    <X className="h-3 w-3 mr-1" />
+                    Effacer ({selectedTags.length})
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {availableTags.map(tag => (
+                  <Button
+                    key={tag}
+                    variant={selectedTags.includes(tag) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleTagFilter(tag)}
+                    className="h-7 text-xs"
+                  >
+                    {tag}
+                    {selectedTags.includes(tag) && (
+                      <X className="h-3 w-3 ml-1" />
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="product-backlog" className="space-y-4">
           <TabsList>
             <TabsTrigger value="product-backlog">Product Backlog</TabsTrigger>
@@ -1145,29 +1349,102 @@ export default function ProductBacklog() {
           <TabsContent value="product-backlog">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Product Backlog - Triées par priorité</h2>
-                <p className="text-sm text-muted-foreground">
-                  Drag & drop ou utilisez les flèches pour réorganiser
-                </p>
+                <h2 className="text-xl font-semibold">
+                  Product Backlog - {selectedTags.length > 0 ? `Filtré par ${selectedTags.length} tag(s)` : 'Toutes les stories'}
+                </h2>
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    {sortedStories.length} stories total
+                  </p>
+                  {viewMode === 'list' && (
+                    <p className="text-sm text-muted-foreground">
+                      Drag & drop ou flèches pour réorganiser
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                {sortedStories.map(story => (
-                  <UserStoryCard key={story.id} story={story} />
-                ))}
-              </div>
+              {viewMode === 'kanban' ? (
+                <KanbanView />
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {paginatedStories.map(story => (
+                      <UserStoryCard key={story.id} story={story} />
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage > 1) setCurrentPage(currentPage - 1);
+                              }}
+                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                            />
+                          </PaginationItem>
+
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                href="#"
+                                isActive={currentPage === page}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrentPage(page);
+                                }}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+
+                          <PaginationItem>
+                            <PaginationNext
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                              }}
+                              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {projectUserStories.length === 0 && (
                 <Card className="p-12 text-center">
                   <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Aucune User Story</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    {selectedTags.length > 0 ? 'Aucune story pour les tags sélectionnés' : 'Aucune User Story'}
+                  </h3>
                   <p className="text-muted-foreground mb-4">
-                    Créez votre première user story au format standard.
+                    {selectedTags.length > 0
+                      ? 'Essayez de modifier vos filtres ou créez une nouvelle story.'
+                      : 'Créez votre première user story au format standard.'
+                    }
                   </p>
-                  <Button onClick={() => setIsCreateStoryOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Créer une User Story
-                  </Button>
+                  {selectedTags.length > 0 ? (
+                    <Button variant="outline" onClick={clearTagFilters}>
+                      <X className="h-4 w-4 mr-2" />
+                      Effacer les filtres
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setIsCreateStoryOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Créer une User Story
+                    </Button>
+                  )}
                 </Card>
               )}
             </div>
