@@ -41,8 +41,6 @@ import {
   ChevronDown,
   ChevronUp,
   FolderOpen,
-  Columns3,
-  List,
   Filter,
   X
 } from "lucide-react";
@@ -313,7 +311,6 @@ export default function ProductBacklog() {
   const [draggedStory, setDraggedStory] = useState<string | null>(null);
 
   // UX improvements
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedSprints, setExpandedSprints] = useState<Set<string>>(new Set());
@@ -365,7 +362,7 @@ export default function ProductBacklog() {
   // Get all available tags for filtering
   const availableTags = [...new Set(projectUserStories.flatMap(story => story.tags))].sort();
 
-  // Calcul de la vélocité sur les 3 derniers sprints du projet sélectionné
+  // Calcul de la vélocité sur les 3 derniers sprints du projet sélectionn��
   const calculateAverageVelocity = () => {
     const projectSprints = sprints.filter(s => s.projectId === selectedProjectId);
     const completedSprints = projectSprints.filter(s => s.status === 'Completed');
@@ -768,7 +765,13 @@ export default function ProductBacklog() {
   );
 
   const SprintCard = ({ sprint }: { sprint: Sprint }) => {
-    const sprintStories = userStories.filter(s => sprint.userStories.includes(s.id));
+    // Filter stories by selected tags
+    const allSprintStories = userStories.filter(s => sprint.userStories.includes(s.id));
+    const sprintStories = allSprintStories.filter(story => {
+      if (selectedTags.length === 0) return true;
+      return selectedTags.some(tag => story.tags.includes(tag));
+    });
+
     const totalPoints = sprintStories.reduce((sum, story) => sum + story.storyPoints, 0);
     const completedPoints = sprintStories
       .filter(s => s.status === 'Done')
@@ -792,6 +795,11 @@ export default function ProductBacklog() {
                 <CardTitle className="text-lg">{sprint.name}</CardTitle>
                 <CardDescription>
                   {sprint.startDate} - {sprint.endDate} ({sprint.duration} semaines)
+                  {selectedTags.length > 0 && (
+                    <span className="ml-2 text-blue-600">
+                      • {sprintStories.length}/{allSprintStories.length} stories (filtrées)
+                    </span>
+                  )}
                 </CardDescription>
               </div>
             </div>
@@ -804,6 +812,11 @@ export default function ProductBacklog() {
                   Figé
                 </Badge>
               )}
+              {selectedTags.length > 0 && (
+                <Badge variant="outline" className="text-blue-600">
+                  Filtré
+                </Badge>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -811,7 +824,9 @@ export default function ProductBacklog() {
           <div className="grid grid-cols-4 gap-4 mb-4">
             <div className="text-center">
               <p className="text-2xl font-bold">{sprintStories.length}</p>
-              <p className="text-sm text-muted-foreground">Stories</p>
+              <p className="text-sm text-muted-foreground">
+                Stories{selectedTags.length > 0 ? ' (filtrées)' : ''}
+              </p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold">{totalPoints}</p>
@@ -829,7 +844,14 @@ export default function ProductBacklog() {
 
           {isExpanded && sprintStories.length > 0 && (
             <div className="space-y-2">
-              <h4 className="font-medium">Stories assignées:</h4>
+              <h4 className="font-medium">
+                Stories assignées:
+                {selectedTags.length > 0 && (
+                  <span className="ml-2 text-sm font-normal text-blue-600">
+                    (Filtrées par: {selectedTags.join(', ')})
+                  </span>
+                )}
+              </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {sprintStories.map(story => (
                   <UserStoryCard key={story.id} story={story} showDragHandle={false} />
@@ -837,46 +859,20 @@ export default function ProductBacklog() {
               </div>
             </div>
           )}
+
+          {isExpanded && sprintStories.length === 0 && selectedTags.length > 0 && (
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground">
+                Aucune story ne correspond aux tags sélectionnés dans ce sprint.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
   };
 
-  const KanbanView = () => {
-    const statusColumns = [
-      { status: 'Draft' as const, title: 'Brouillon', color: 'bg-gray-50' },
-      { status: 'Ready' as const, title: 'Prêt', color: 'bg-blue-50' },
-      { status: 'In Progress' as const, title: 'En Cours', color: 'bg-yellow-50' },
-      { status: 'Done' as const, title: 'Terminé', color: 'bg-green-50' },
-      { status: 'Rejected' as const, title: 'Rejeté', color: 'bg-red-50' }
-    ];
 
-    return (
-      <div className="grid grid-cols-5 gap-4">
-        {statusColumns.map(column => {
-          const columnStories = sortedStories.filter(story => story.status === column.status);
-          return (
-            <div key={column.status} className={`${column.color} p-4 rounded-lg min-h-[600px]`}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium">{column.title}</h3>
-                <Badge variant="secondary">{columnStories.length}</Badge>
-              </div>
-              <div className="space-y-3">
-                {columnStories.map(story => (
-                  <UserStoryCard key={story.id} story={story} showDragHandle={false} />
-                ))}
-              </div>
-              {columnStories.length === 0 && (
-                <div className="text-center text-muted-foreground text-sm mt-8">
-                  Aucune story
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
 
   const averageVelocity = calculateAverageVelocity();
   const readyStories = projectUserStories.filter(s => s.status === 'Ready');
@@ -920,31 +916,7 @@ export default function ProductBacklog() {
                 Gestion des user stories format standard et planification des sprints
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="px-3"
-                >
-                  <List className="h-4 w-4 mr-1" />
-                  Liste
-                </Button>
-                <Button
-                  variant={viewMode === 'kanban' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('kanban')}
-                  className="px-3"
-                >
-                  <Columns3 className="h-4 w-4 mr-1" />
-                  Kanban
-                </Button>
-              </div>
-
-              {/* Create buttons */}
-              <div className="flex gap-2">
+            <div className="flex gap-2">
             <Dialog open={isCreateStoryOpen} onOpenChange={setIsCreateStoryOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -1356,71 +1328,65 @@ export default function ProductBacklog() {
                   <p className="text-sm text-muted-foreground">
                     {sortedStories.length} stories total
                   </p>
-                  {viewMode === 'list' && (
-                    <p className="text-sm text-muted-foreground">
-                      Drag & drop ou flèches pour réorganiser
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Drag & drop ou flèches pour réorganiser
+                  </p>
                 </div>
               </div>
 
-              {viewMode === 'kanban' ? (
-                <KanbanView />
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {paginatedStories.map(story => (
-                      <UserStoryCard key={story.id} story={story} />
-                    ))}
-                  </div>
-
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="flex justify-center">
-                      <Pagination>
-                        <PaginationContent>
-                          <PaginationItem>
-                            <PaginationPrevious
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (currentPage > 1) setCurrentPage(currentPage - 1);
-                              }}
-                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-                            />
-                          </PaginationItem>
-
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                            <PaginationItem key={page}>
-                              <PaginationLink
-                                href="#"
-                                isActive={currentPage === page}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setCurrentPage(page);
-                                }}
-                              >
-                                {page}
-                              </PaginationLink>
-                            </PaginationItem>
-                          ))}
-
-                          <PaginationItem>
-                            <PaginationNext
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                              }}
-                              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-                            />
-                          </PaginationItem>
-                        </PaginationContent>
-                      </Pagination>
-                    </div>
-                  )}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {paginatedStories.map(story => (
+                    <UserStoryCard key={story.id} story={story} />
+                  ))}
                 </div>
-              )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage > 1) setCurrentPage(currentPage - 1);
+                            }}
+                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                          />
+                        </PaginationItem>
+
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href="#"
+                              isActive={currentPage === page}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(page);
+                              }}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                            }}
+                            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
+              </div>
 
               {projectUserStories.length === 0 && (
                 <Card className="p-12 text-center">
@@ -1453,15 +1419,31 @@ export default function ProductBacklog() {
           <TabsContent value="sprint-backlog">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Sprint Backlog</h2>
+                <h2 className="text-xl font-semibold">
+                  Sprint Backlog - {selectedTags.length > 0 ? `Filtré par ${selectedTags.length} tag(s)` : 'Tous les sprints'}
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   Les sprints sont figés après démarrage
                 </p>
               </div>
 
-              {projectSprints.map(sprint => (
-                <SprintCard key={sprint.id} sprint={sprint} />
-              ))}
+              {projectSprints.map(sprint => {
+                // Filter sprint stories by selected tags
+                const filteredSprintStories = userStories.filter(s => {
+                  if (!sprint.userStories.includes(s.id)) return false;
+                  if (selectedTags.length === 0) return true;
+                  return selectedTags.some(tag => s.tags.includes(tag));
+                });
+
+                // Only show sprint if it has stories matching the filter or no filter is applied
+                if (selectedTags.length > 0 && filteredSprintStories.length === 0) {
+                  return null;
+                }
+
+                return (
+                  <SprintCard key={sprint.id} sprint={sprint} />
+                );
+              })}
 
               {projectSprints.length === 0 && (
                 <Card className="p-12 text-center">
@@ -1473,6 +1455,26 @@ export default function ProductBacklog() {
                   <Button onClick={() => setIsCreateSprintOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Créer un Sprint
+                  </Button>
+                </Card>
+              )}
+
+              {selectedTags.length > 0 && projectSprints.every(sprint => {
+                const filteredSprintStories = userStories.filter(s => {
+                  if (!sprint.userStories.includes(s.id)) return false;
+                  return selectedTags.some(tag => s.tags.includes(tag));
+                });
+                return filteredSprintStories.length === 0;
+              }) && projectSprints.length > 0 && (
+                <Card className="p-12 text-center">
+                  <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Aucun sprint avec les tags sélectionnés</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Aucun sprint ne contient de stories avec les tags actuellement filtrés.
+                  </p>
+                  <Button variant="outline" onClick={clearTagFilters}>
+                    <X className="h-4 w-4 mr-2" />
+                    Effacer les filtres
                   </Button>
                 </Card>
               )}
