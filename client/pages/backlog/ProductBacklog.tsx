@@ -362,7 +362,7 @@ export default function ProductBacklog() {
   // Get all available tags for filtering
   const availableTags = [...new Set(projectUserStories.flatMap(story => story.tags))].sort();
 
-  // Calcul de la vélocité sur les 3 derniers sprints du projet sélectionn��
+  // Calcul de la vélocité sur les 3 derniers sprints du projet sélectionné
   const calculateAverageVelocity = () => {
     const projectSprints = sprints.filter(s => s.projectId === selectedProjectId);
     const completedSprints = projectSprints.filter(s => s.status === 'Completed');
