@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,7 @@ import {
 
 interface UserStory {
   id: string;
+  projectId: string; // Relation avec le projet
   asA: string; // "En tant que [qui]"
   iWant: string; // "je veux [quoi]"
   soThat: string; // "pour [pourquoi]"
@@ -66,8 +67,16 @@ interface Task {
   assignee?: string;
 }
 
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  status: 'planifie' | 'en-cours' | 'suspendu' | 'termine' | 'archive';
+}
+
 interface Sprint {
   id: string;
+  projectId: string; // Relation avec le projet
   name: string;
   startDate: string;
   endDate: string;
@@ -96,9 +105,31 @@ const statusColors = {
   Rejected: 'bg-red-100 text-red-800'
 };
 
+const mockProjects: Project[] = [
+  {
+    id: '1',
+    name: 'Plateforme E-commerce',
+    description: 'Développement d\'une plateforme de vente en ligne',
+    status: 'en-cours'
+  },
+  {
+    id: '2',
+    name: 'Application Mobile Banking',
+    description: 'Application mobile sécurisée pour les services bancaires',
+    status: 'planifie'
+  },
+  {
+    id: '3',
+    name: 'Système CRM',
+    description: 'Système de gestion de la relation client',
+    status: 'termine'
+  }
+];
+
 const mockUserStories: UserStory[] = [
   {
     id: '1',
+    projectId: '1', // Plateforme E-commerce
     asA: 'utilisateur',
     iWant: 'me connecter avec mon email et mot de passe',
     soThat: 'accéder à mon compte sécurisé',
@@ -106,7 +137,7 @@ const mockUserStories: UserStory[] = [
       'L\'utilisateur peut saisir son email et mot de passe',
       'Le système valide les informations d\'identification',
       'L\'utilisateur est redirigé vers le tableau de bord après connexion',
-      'Un message d\'erreur s\'affiche en cas d\'��chec'
+      'Un message d\'erreur s\'affiche en cas d\'échec'
     ],
     priority: 'High',
     priorityOrder: 1,
@@ -120,6 +151,7 @@ const mockUserStories: UserStory[] = [
   },
   {
     id: '2',
+    projectId: '1', // Plateforme E-commerce
     asA: 'utilisateur',
     iWant: 'réinitialiser mon mot de passe',
     soThat: 'récupérer l\'accès à mon compte si je l\'oublie',
@@ -141,6 +173,7 @@ const mockUserStories: UserStory[] = [
   },
   {
     id: '3',
+    projectId: '1', // Plateforme E-commerce
     asA: 'client',
     iWant: 'ajouter des produits à mon panier',
     soThat: 'préparer ma commande avant l\'achat',
@@ -162,6 +195,7 @@ const mockUserStories: UserStory[] = [
   },
   {
     id: '4',
+    projectId: '1', // Plateforme E-commerce
     asA: 'client',
     iWant: 'finaliser ma commande avec paiement',
     soThat: 'acheter les produits de mon panier',
@@ -183,30 +217,54 @@ const mockUserStories: UserStory[] = [
   },
   {
     id: '5',
-    asA: 'administrateur',
-    iWant: 'voir les statistiques de vente',
-    soThat: 'analyser les performances du site',
+    projectId: '2', // Application Mobile Banking
+    asA: 'utilisateur mobile',
+    iWant: 'me connecter avec mon empreinte digitale',
+    soThat: 'accéder rapidement et sécurisément à mon compte',
     acceptanceCriteria: [
-      'Dashboard avec graphiques de vente',
-      'Filtrage par période',
-      'Export des données en CSV',
-      'Alertes pour les baisses de performance'
+      'Interface de connexion biométrique',
+      'Fallback vers PIN en cas d\'échec',
+      'Stockage sécurisé des données biométriques',
+      'Compatibilité iOS et Android'
     ],
-    priority: 'Low',
-    priorityOrder: 8,
-    storyPoints: 21,
-    status: 'Draft',
-    businessValue: 6,
-    tags: ['analytics', 'admin'],
+    priority: 'High',
+    priorityOrder: 1,
+    storyPoints: 8,
+    status: 'Ready',
+    businessValue: 9,
+    tags: ['mobile', 'security', 'biometric'],
     createdAt: '2024-01-20',
     updatedAt: '2024-01-20',
-    order: 5
+    order: 1
+  },
+  {
+    id: '6',
+    projectId: '3', // Système CRM
+    asA: 'commercial',
+    iWant: 'voir la liste de mes prospects',
+    soThat: 'organiser mes actions de prospection',
+    acceptanceCriteria: [
+      'Liste filtrée des prospects assignés',
+      'Statut de chaque prospect visible',
+      'Actions rapides (appel, email, rendez-vous)',
+      'Historique des interactions'
+    ],
+    priority: 'High',
+    priorityOrder: 1,
+    storyPoints: 5,
+    status: 'Done',
+    businessValue: 8,
+    tags: ['crm', 'sales', 'prospect'],
+    createdAt: '2024-01-10',
+    updatedAt: '2024-01-25',
+    order: 1
   }
 ];
 
 const mockSprints: Sprint[] = [
   {
     id: '1',
+    projectId: '1', // Plateforme E-commerce
     name: 'Sprint 1 - Authentification',
     startDate: '2024-01-15',
     endDate: '2024-01-29',
@@ -220,6 +278,7 @@ const mockSprints: Sprint[] = [
   },
   {
     id: '2',
+    projectId: '1', // Plateforme E-commerce
     name: 'Sprint 2 - E-commerce Core',
     startDate: '2024-01-30',
     endDate: '2024-02-13',
@@ -234,12 +293,15 @@ const mockSprints: Sprint[] = [
 ];
 
 export default function ProductBacklog() {
+  const [projects] = useState<Project[]>(mockProjects);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(mockProjects[0]?.id || '');
   const [userStories, setUserStories] = useState<UserStory[]>(mockUserStories);
   const [sprints, setSprints] = useState<Sprint[]>(mockSprints);
   const [isCreateStoryOpen, setIsCreateStoryOpen] = useState(false);
   const [isCreateSprintOpen, setIsCreateSprintOpen] = useState(false);
   const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
   const [deleteStoryId, setDeleteStoryId] = useState<string | null>(null);
+  const [draggedStory, setDraggedStory] = useState<string | null>(null);
   const [storyForm, setStoryForm] = useState({
     asA: '',
     iWant: '',
@@ -258,8 +320,11 @@ export default function ProductBacklog() {
     selectedStories: [] as string[]
   });
 
+  // Filtrer les user stories par projet sélectionné
+  const projectUserStories = userStories.filter(story => story.projectId === selectedProjectId);
+
   // Tri des user stories par priorité puis par ordre
-  const sortedStories = userStories
+  const sortedStories = projectUserStories
     .sort((a, b) => {
       if (a.priorityOrder !== b.priorityOrder) {
         return a.priorityOrder - b.priorityOrder;
@@ -267,11 +332,12 @@ export default function ProductBacklog() {
       return a.order - b.order;
     });
 
-  // Calcul de la vélocité sur les 3 derniers sprints
+  // Calcul de la vélocité sur les 3 derniers sprints du projet sélectionné
   const calculateAverageVelocity = () => {
-    const completedSprints = sprints.filter(s => s.status === 'Completed');
+    const projectSprints = sprints.filter(s => s.projectId === selectedProjectId);
+    const completedSprints = projectSprints.filter(s => s.status === 'Completed');
     if (completedSprints.length === 0) return 0;
-    
+
     const recentSprints = completedSprints.slice(-3);
     const totalVelocity = recentSprints.reduce((sum, sprint) => sum + sprint.velocity, 0);
     return Math.round(totalVelocity / recentSprints.length);
@@ -287,8 +353,18 @@ export default function ProductBacklog() {
       return;
     }
 
+    if (!selectedProjectId) {
+      toast({
+        title: "Projet requis",
+        description: "Veuillez sélectionner un projet",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const newStory: UserStory = {
       id: Date.now().toString(),
+      projectId: selectedProjectId,
       asA: storyForm.asA,
       iWant: storyForm.iWant,
       soThat: storyForm.soThat,
@@ -301,7 +377,7 @@ export default function ProductBacklog() {
       tags: storyForm.tags.split(',').map(t => t.trim()).filter(Boolean),
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
-      order: userStories.length + 1
+      order: projectUserStories.length + 1
     };
 
     setUserStories(prev => [...prev, newStory]);
@@ -327,12 +403,22 @@ export default function ProductBacklog() {
       return;
     }
 
+    if (!selectedProjectId) {
+      toast({
+        title: "Projet requis",
+        description: "Veuillez sélectionner un projet",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const startDate = new Date(sprintForm.startDate);
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + (sprintForm.duration * 7));
 
     const newSprint: Sprint = {
       id: Date.now().toString(),
+      projectId: selectedProjectId,
       name: sprintForm.name,
       startDate: sprintForm.startDate,
       endDate: endDate.toISOString().split('T')[0],
@@ -346,9 +432,9 @@ export default function ProductBacklog() {
     };
 
     setSprints(prev => [...prev, newSprint]);
-    
+
     // Mettre à jour le statut des stories sélectionnées
-    setUserStories(prev => prev.map(story => 
+    setUserStories(prev => prev.map(story =>
       sprintForm.selectedStories.includes(story.id)
         ? { ...story, status: 'Ready' as const }
         : story
@@ -366,32 +452,88 @@ export default function ProductBacklog() {
   };
 
   const changeStoryStatus = (storyId: string, newStatus: UserStory['status']) => {
-    setUserStories(prev => prev.map(story => 
-      story.id === storyId 
+    setUserStories(prev => prev.map(story =>
+      story.id === storyId
         ? { ...story, status: newStatus, updatedAt: new Date().toISOString().split('T')[0] }
         : story
     ));
   };
 
-  const moveStory = (storyId: string, direction: 'up' | 'down') => {
-    const storyIndex = sortedStories.findIndex(s => s.id === storyId);
+  const moveStory = useCallback((storyId: string, direction: 'up' | 'down') => {
+    const currentProjectStories = sortedStories;
+    const storyIndex = currentProjectStories.findIndex(s => s.id === storyId);
     if (storyIndex === -1) return;
-    
-    const newIndex = direction === 'up' ? storyIndex - 1 : storyIndex + 1;
-    if (newIndex < 0 || newIndex >= sortedStories.length) return;
 
-    const newOrder = sortedStories[newIndex].order;
-    const currentOrder = sortedStories[storyIndex].order;
+    const newIndex = direction === 'up' ? storyIndex - 1 : storyIndex + 1;
+    if (newIndex < 0 || newIndex >= currentProjectStories.length) return;
+
+    const targetStory = currentProjectStories[newIndex];
+    const currentStory = currentProjectStories[storyIndex];
 
     setUserStories(prev => prev.map(story => {
       if (story.id === storyId) {
-        return { ...story, order: newOrder };
+        return { ...story, order: targetStory.order, updatedAt: new Date().toISOString().split('T')[0] };
       }
-      if (story.id === sortedStories[newIndex].id) {
-        return { ...story, order: currentOrder };
+      if (story.id === targetStory.id) {
+        return { ...story, order: currentStory.order, updatedAt: new Date().toISOString().split('T')[0] };
       }
       return story;
     }));
+
+    toast({
+      title: "Story réorganisée",
+      description: `La story a été déplacée vers le ${direction === 'up' ? 'haut' : 'bas'}`
+    });
+  }, [sortedStories]);
+
+  const handleDragStart = (e: React.DragEvent, storyId: string) => {
+    setDraggedStory(storyId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetStoryId: string) => {
+    e.preventDefault();
+
+    if (!draggedStory || draggedStory === targetStoryId) {
+      setDraggedStory(null);
+      return;
+    }
+
+    const draggedIndex = sortedStories.findIndex(s => s.id === draggedStory);
+    const targetIndex = sortedStories.findIndex(s => s.id === targetStoryId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedStory(null);
+      return;
+    }
+
+    const newStories = [...sortedStories];
+    const [draggedItem] = newStories.splice(draggedIndex, 1);
+    newStories.splice(targetIndex, 0, draggedItem);
+
+    // Recalculer les ordres
+    const updatedStories = newStories.map((story, index) => ({
+      ...story,
+      order: index + 1,
+      updatedAt: new Date().toISOString().split('T')[0]
+    }));
+
+    setUserStories(prev => prev.map(story => {
+      const updatedStory = updatedStories.find(us => us.id === story.id);
+      return updatedStory || story;
+    }));
+
+    setDraggedStory(null);
+
+    toast({
+      title: "Story réorganisée",
+      description: "L'ordre des stories a été mis à jour"
+    });
   };
 
   const formatUserStory = (story: UserStory) => {
@@ -399,26 +541,37 @@ export default function ProductBacklog() {
   };
 
   const UserStoryCard = ({ story, showDragHandle = true }: { story: UserStory, showDragHandle?: boolean }) => (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card
+      className={`hover:shadow-md transition-shadow ${draggedStory === story.id ? 'opacity-50' : ''}`}
+      draggable={showDragHandle}
+      onDragStart={(e) => showDragHandle && handleDragStart(e, story.id)}
+      onDragOver={handleDragOver}
+      onDrop={(e) => handleDrop(e, story.id)}
+    >
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-2 flex-1">
             {showDragHandle && (
               <div className="flex flex-col gap-1 mt-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 w-6 p-0"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-gray-100"
                   onClick={() => moveStory(story.id, 'up')}
+                  title="Déplacer vers le haut"
                 >
                   <ArrowUp className="h-3 w-3" />
                 </Button>
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 w-6 p-0"
+                <GripVertical
+                  className="h-4 w-4 text-muted-foreground cursor-move"
+                  title="Glisser-déposer pour réorganiser"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-gray-100"
                   onClick={() => moveStory(story.id, 'down')}
+                  title="Déplacer vers le bas"
                 >
                   <ArrowDown className="h-3 w-3" />
                 </Button>
@@ -478,7 +631,7 @@ export default function ProductBacklog() {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="text-red-600"
                 onClick={() => setDeleteStoryId(story.id)}
               >
@@ -578,7 +731,7 @@ export default function ProductBacklog() {
               <p className="text-sm text-muted-foreground">Progression</p>
             </div>
           </div>
-          
+
           {sprintStories.length > 0 && (
             <div className="space-y-2">
               <h4 className="font-medium">Stories assignées:</h4>
@@ -595,15 +748,35 @@ export default function ProductBacklog() {
   };
 
   const averageVelocity = calculateAverageVelocity();
-  const readyStories = userStories.filter(s => s.status === 'Ready');
+  const readyStories = projectUserStories.filter(s => s.status === 'Ready');
+  const projectSprints = sprints.filter(s => s.projectId === selectedProjectId);
+  const selectedProject = projects.find(p => p.id === selectedProjectId);
 
   return (
     <MainLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Product & Sprint Backlog</h1>
+          <div className="flex-1">
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-3xl font-bold">Product & Sprint Backlog</h1>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="project-select" className="text-sm font-medium">Projet:</Label>
+                <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map(project => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <p className="text-muted-foreground">
+              {selectedProject ? `${selectedProject.description} - ` : ''}
               Gestion des user stories format standard et planification des sprints
             </p>
           </div>
@@ -670,9 +843,9 @@ export default function ProductBacklog() {
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setStoryForm(prev => ({ 
-                              ...prev, 
-                              acceptanceCriteria: [...prev.acceptanceCriteria, ''] 
+                            onClick={() => setStoryForm(prev => ({
+                              ...prev,
+                              acceptanceCriteria: [...prev.acceptanceCriteria, '']
                             }))}
                           >
                             <Plus className="h-4 w-4" />
@@ -685,9 +858,9 @@ export default function ProductBacklog() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="priority">Priorité</Label>
-                      <Select 
+                      <Select
                         value={storyForm.priority}
-                        onValueChange={(value: 'High' | 'Medium' | 'Low') => 
+                        onValueChange={(value: 'High' | 'Medium' | 'Low') =>
                           setStoryForm(prev => ({ ...prev, priority: value }))}
                       >
                         <SelectTrigger>
@@ -703,9 +876,9 @@ export default function ProductBacklog() {
 
                     <div className="space-y-2">
                       <Label htmlFor="story-points">Story Points (Fibonacci)</Label>
-                      <Select 
+                      <Select
                         value={storyForm.storyPoints.toString()}
-                        onValueChange={(value) => 
+                        onValueChange={(value) =>
                           setStoryForm(prev => ({ ...prev, storyPoints: parseInt(value) as any }))}
                       >
                         <SelectTrigger>
@@ -729,8 +902,8 @@ export default function ProductBacklog() {
                         min="1"
                         max="10"
                         value={storyForm.businessValue}
-                        onChange={(e) => setStoryForm(prev => ({ 
-                          ...prev, 
+                        onChange={(e) => setStoryForm(prev => ({
+                          ...prev,
                           businessValue: Math.max(1, Math.min(10, parseInt(e.target.value) || 5))
                         }))}
                       />
@@ -798,9 +971,9 @@ export default function ProductBacklog() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="duration">Durée (semaines)</Label>
-                      <Select 
+                      <Select
                         value={sprintForm.duration.toString()}
-                        onValueChange={(value) => 
+                        onValueChange={(value) =>
                           setSprintForm(prev => ({ ...prev, duration: parseInt(value) }))}
                       >
                         <SelectTrigger>
@@ -822,8 +995,8 @@ export default function ProductBacklog() {
                         min="20"
                         max="200"
                         value={sprintForm.capacity}
-                        onChange={(e) => setSprintForm(prev => ({ 
-                          ...prev, 
+                        onChange={(e) => setSprintForm(prev => ({
+                          ...prev,
                           capacity: parseInt(e.target.value) || 80
                         }))}
                       />
@@ -841,14 +1014,14 @@ export default function ProductBacklog() {
                             checked={sprintForm.selectedStories.includes(story.id)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSprintForm(prev => ({ 
-                                  ...prev, 
-                                  selectedStories: [...prev.selectedStories, story.id] 
+                                setSprintForm(prev => ({
+                                  ...prev,
+                                  selectedStories: [...prev.selectedStories, story.id]
                                 }));
                               } else {
-                                setSprintForm(prev => ({ 
-                                  ...prev, 
-                                  selectedStories: prev.selectedStories.filter(id => id !== story.id) 
+                                setSprintForm(prev => ({
+                                  ...prev,
+                                  selectedStories: prev.selectedStories.filter(id => id !== story.id)
                                 }));
                               }
                             }}
@@ -867,7 +1040,7 @@ export default function ProductBacklog() {
                     </div>
                     {sprintForm.selectedStories.length > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        {sprintForm.selectedStories.length} stories sélectionnées 
+                        {sprintForm.selectedStories.length} stories sélectionnées
                         ({readyStories.filter(s => sprintForm.selectedStories.includes(s.id))
                           .reduce((sum, s) => sum + s.storyPoints, 0)} points total)
                       </p>
@@ -896,7 +1069,7 @@ export default function ProductBacklog() {
                   <BookOpen className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{userStories.length}</p>
+                  <p className="text-2xl font-bold">{projectUserStories.length}</p>
                   <p className="text-sm text-muted-foreground">User Stories</p>
                 </div>
               </div>
@@ -925,7 +1098,7 @@ export default function ProductBacklog() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {userStories.reduce((sum, s) => sum + s.storyPoints, 0)}
+                    {projectUserStories.reduce((sum, s) => sum + s.storyPoints, 0)}
                   </p>
                   <p className="text-sm text-muted-foreground">Story Points</p>
                 </div>
@@ -940,7 +1113,7 @@ export default function ProductBacklog() {
                   <Calendar className="h-6 w-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{sprints.length}</p>
+                  <p className="text-2xl font-bold">{projectSprints.length}</p>
                   <p className="text-sm text-muted-foreground">Sprints</p>
                 </div>
               </div>
@@ -977,14 +1150,14 @@ export default function ProductBacklog() {
                   Drag & drop ou utilisez les flèches pour réorganiser
                 </p>
               </div>
-              
+
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 {sortedStories.map(story => (
                   <UserStoryCard key={story.id} story={story} />
                 ))}
               </div>
 
-              {userStories.length === 0 && (
+              {projectUserStories.length === 0 && (
                 <Card className="p-12 text-center">
                   <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Aucune User Story</h3>
@@ -1008,12 +1181,12 @@ export default function ProductBacklog() {
                   Les sprints sont figés après démarrage
                 </p>
               </div>
-              
-              {sprints.map(sprint => (
+
+              {projectSprints.map(sprint => (
                 <SprintCard key={sprint.id} sprint={sprint} />
               ))}
 
-              {sprints.length === 0 && (
+              {projectSprints.length === 0 && (
                 <Card className="p-12 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Aucun Sprint</h3>
@@ -1040,7 +1213,7 @@ export default function ProductBacklog() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {sprints.filter(s => s.status === 'Completed').slice(-3).map(sprint => (
+                    {projectSprints.filter(s => s.status === 'Completed').slice(-3).map(sprint => (
                       <div key={sprint.id} className="flex justify-between items-center p-2 bg-muted rounded">
                         <span className="font-medium">{sprint.name}</span>
                         <span>{sprint.velocity} points</span>
@@ -1066,8 +1239,8 @@ export default function ProductBacklog() {
                 <CardContent>
                   <div className="space-y-3">
                     {Object.entries(statusColors).map(([status, color]) => {
-                      const count = userStories.filter(s => s.status === status).length;
-                      const percentage = userStories.length > 0 ? Math.round((count / userStories.length) * 100) : 0;
+                      const count = projectUserStories.filter(s => s.status === status).length;
+                      const percentage = projectUserStories.length > 0 ? Math.round((count / projectUserStories.length) * 100) : 0;
                       return (
                         <div key={status} className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
@@ -1155,7 +1328,7 @@ export default function ProductBacklog() {
             <AlertDialogHeader>
               <AlertDialogTitle>Supprimer la User Story</AlertDialogTitle>
               <AlertDialogDescription>
-                Êtes-vous sûr de vouloir supprimer cette user story ? 
+                Êtes-vous sûr de vouloir supprimer cette user story ?
                 Cette action est irréversible.
               </AlertDialogDescription>
             </AlertDialogHeader>
