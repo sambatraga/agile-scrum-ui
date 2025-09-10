@@ -392,6 +392,18 @@ export default function ProductBacklog() {
 
   const itemsPerPage = 6;
 
+  useEffect(() => {
+    try {
+      localStorage.setItem("backlog_userStories", JSON.stringify(userStories));
+    } catch {}
+  }, [userStories]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("backlog_sprints", JSON.stringify(sprints));
+    } catch {}
+  }, [sprints]);
+
   const [storyForm, setStoryForm] = useState({
     asA: "",
     iWant: "",
