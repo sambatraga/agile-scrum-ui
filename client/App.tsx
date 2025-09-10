@@ -75,6 +75,7 @@ const App = () => (
           <Route path="/sprints/review" element={<SprintReview />} />
 
           {/* Tasks */}
+          <Route path="/tasks/:sprintId" element={<SprintTasks />} />
           <Route path="/tasks/kanban" element={<KanbanBoard />} />
           <Route path="/tasks/time" element={<TimeTracking />} />
 
