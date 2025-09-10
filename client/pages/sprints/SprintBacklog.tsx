@@ -53,9 +53,24 @@ const sprintBacklog = [
     status: "In Progress",
     assignee: "Pierre M.",
     tasks: [
-      { id: "T-404", title: "Design role management UI", status: "Done", hours: 8 },
-      { id: "T-405", title: "Implement CRUD operations", status: "In Progress", hours: 10 },
-      { id: "T-406", title: "Add permission matrix", status: "To Do", hours: 6 },
+      {
+        id: "T-404",
+        title: "Design role management UI",
+        status: "Done",
+        hours: 8,
+      },
+      {
+        id: "T-405",
+        title: "Implement CRUD operations",
+        status: "In Progress",
+        hours: 10,
+      },
+      {
+        id: "T-406",
+        title: "Add permission matrix",
+        status: "To Do",
+        hours: 6,
+      },
     ],
   },
   {
@@ -66,7 +81,12 @@ const sprintBacklog = [
     status: "Done",
     assignee: "Sophie L.",
     tasks: [
-      { id: "T-407", title: "Password reset email template", status: "Done", hours: 3 },
+      {
+        id: "T-407",
+        title: "Password reset email template",
+        status: "Done",
+        hours: 3,
+      },
       { id: "T-408", title: "Reset password API", status: "Done", hours: 4 },
       { id: "T-409", title: "Frontend reset form", status: "Done", hours: 3 },
     ],
@@ -79,7 +99,12 @@ const sprintBacklog = [
     status: "In Progress",
     assignee: "Thomas M.",
     tasks: [
-      { id: "T-410", title: "Research 2FA solutions", status: "Done", hours: 4 },
+      {
+        id: "T-410",
+        title: "Research 2FA solutions",
+        status: "Done",
+        hours: 4,
+      },
       { id: "T-411", title: "Implement TOTP", status: "In Progress", hours: 8 },
       { id: "T-412", title: "QR code generation", status: "To Do", hours: 4 },
     ],
@@ -92,8 +117,18 @@ const sprintBacklog = [
     status: "To Do",
     assignee: "Julie P.",
     tasks: [
-      { id: "T-413", title: "Database schema for logs", status: "To Do", hours: 3 },
-      { id: "T-414", title: "Login tracking system", status: "To Do", hours: 6 },
+      {
+        id: "T-413",
+        title: "Database schema for logs",
+        status: "To Do",
+        hours: 3,
+      },
+      {
+        id: "T-414",
+        title: "Login tracking system",
+        status: "To Do",
+        hours: 6,
+      },
       { id: "T-415", title: "Admin dashboard view", status: "To Do", hours: 5 },
     ],
   },
@@ -126,8 +161,12 @@ const getPriorityColor = (priority: string) => {
 };
 
 export default function SprintBacklog() {
-  const completionPercentage = Math.round((sprintInfo.completed / sprintInfo.committed) * 100);
-  const capacityUsage = Math.round((sprintInfo.committed / sprintInfo.capacity) * 100);
+  const completionPercentage = Math.round(
+    (sprintInfo.completed / sprintInfo.committed) * 100,
+  );
+  const capacityUsage = Math.round(
+    (sprintInfo.committed / sprintInfo.capacity) * 100,
+  );
 
   return (
     <MainLayout>
@@ -135,7 +174,9 @@ export default function SprintBacklog() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Sprint Backlog</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Sprint Backlog
+            </h1>
             <p className="text-muted-foreground mt-1">
               Gérez les user stories sélectionnées pour le sprint actuel
             </p>
@@ -169,16 +210,22 @@ export default function SprintBacklog() {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-medium mb-2">Objectif Sprint</h3>
-                  <p className="text-sm text-muted-foreground">{sprintInfo.goal}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {sprintInfo.goal}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="text-sm text-muted-foreground">Date début</div>
+                    <div className="text-sm text-muted-foreground">
+                      Date début
+                    </div>
                     <div className="font-medium">{sprintInfo.startDate}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-muted-foreground">Date fin</div>
+                    <div className="text-sm text-muted-foreground">
+                      Date fin
+                    </div>
                     <div className="font-medium">{sprintInfo.endDate}</div>
                   </div>
                 </div>
@@ -190,26 +237,34 @@ export default function SprintBacklog() {
                     <div className="text-2xl font-bold text-orange-600">
                       {sprintInfo.daysRemaining}
                     </div>
-                    <div className="text-sm text-muted-foreground">Jours restants</div>
+                    <div className="text-sm text-muted-foreground">
+                      Jours restants
+                    </div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-blue-600">
                       {sprintInfo.committed}
                     </div>
-                    <div className="text-sm text-muted-foreground">SP engagés</div>
+                    <div className="text-sm text-muted-foreground">
+                      SP engagés
+                    </div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-green-600">
                       {completionPercentage}%
                     </div>
-                    <div className="text-sm text-muted-foreground">Complété</div>
+                    <div className="text-sm text-muted-foreground">
+                      Complété
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Progression Sprint</span>
-                    <span>{sprintInfo.completed}/{sprintInfo.committed} SP</span>
+                    <span>
+                      {sprintInfo.completed}/{sprintInfo.committed} SP
+                    </span>
                   </div>
                   <Progress value={completionPercentage} className="w-full" />
                 </div>
@@ -217,7 +272,9 @@ export default function SprintBacklog() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Capacité utilisée</span>
-                    <span>{sprintInfo.committed}/{sprintInfo.capacity} SP</span>
+                    <span>
+                      {sprintInfo.committed}/{sprintInfo.capacity} SP
+                    </span>
                   </div>
                   <Progress value={capacityUsage} className="w-full" />
                 </div>
@@ -230,7 +287,9 @@ export default function SprintBacklog() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">User Stories</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                User Stories
+              </CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -307,7 +366,10 @@ export default function SprintBacklog() {
                         <div className="flex items-center gap-1">
                           <Avatar className="h-4 w-4">
                             <AvatarFallback className="text-xs">
-                              {story.assignee.split(' ').map(n => n[0]).join('')}
+                              {story.assignee
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
                             </AvatarFallback>
                           </Avatar>
                           <span>{story.assignee}</span>
@@ -360,14 +422,16 @@ export default function SprintBacklog() {
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-4">
                       <span>
-                        {story.tasks.filter(t => t.status === "Done").length}/
+                        {story.tasks.filter((t) => t.status === "Done").length}/
                         {story.tasks.length} tâches terminées
                       </span>
                       <span>
-                        {story.tasks.reduce((acc, t) => 
-                          t.status === "Done" ? acc + t.hours : acc, 0
-                        )}/
-                        {story.tasks.reduce((acc, t) => acc + t.hours, 0)}h
+                        {story.tasks.reduce(
+                          (acc, t) =>
+                            t.status === "Done" ? acc + t.hours : acc,
+                          0,
+                        )}
+                        /{story.tasks.reduce((acc, t) => acc + t.hours, 0)}h
                       </span>
                     </div>
                     <Button variant="ghost" size="sm">

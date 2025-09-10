@@ -58,7 +58,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -1727,7 +1734,9 @@ export default function ProductBacklog() {
           <TabsContent value="sprint-backlog">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Liste des Sprint Backlogs</h2>
+                <h2 className="text-xl font-semibold">
+                  Liste des Sprint Backlogs
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   {selectedTags.length > 0
                     ? `Filtré par ${selectedTags.length} tag(s)`
@@ -1753,28 +1762,50 @@ export default function ProductBacklog() {
                     </TableHeader>
                     <TableBody>
                       {projectSprints.map((sprint) => {
-                        const storiesAll = userStories.filter((s) => sprint.userStories.includes(s.id));
-                        const filteredStories = storiesAll.filter((s) =>
-                          selectedTags.length === 0 ? true : selectedTags.some((t) => s.tags.includes(t)),
+                        const storiesAll = userStories.filter((s) =>
+                          sprint.userStories.includes(s.id),
                         );
-                        if (selectedTags.length > 0 && filteredStories.length === 0) {
+                        const filteredStories = storiesAll.filter((s) =>
+                          selectedTags.length === 0
+                            ? true
+                            : selectedTags.some((t) => s.tags.includes(t)),
+                        );
+                        if (
+                          selectedTags.length > 0 &&
+                          filteredStories.length === 0
+                        ) {
                           return null;
                         }
-                        const totalPoints = filteredStories.reduce((sum, s) => sum + s.storyPoints, 0);
+                        const totalPoints = filteredStories.reduce(
+                          (sum, s) => sum + s.storyPoints,
+                          0,
+                        );
                         const donePoints = filteredStories
                           .filter((s) => s.status === "Done")
                           .reduce((sum, s) => sum + s.storyPoints, 0);
-                        const progress = totalPoints > 0 ? Math.round((donePoints / totalPoints) * 100) : 0;
+                        const progress =
+                          totalPoints > 0
+                            ? Math.round((donePoints / totalPoints) * 100)
+                            : 0;
                         return (
                           <TableRow key={sprint.id}>
-                            <TableCell className="font-medium">{sprint.name}</TableCell>
+                            <TableCell className="font-medium">
+                              {sprint.name}
+                            </TableCell>
                             <TableCell>
-                              <Badge variant={sprint.status === "Active" ? "default" : "secondary"}>
+                              <Badge
+                                variant={
+                                  sprint.status === "Active"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
                                 {sprint.status}
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {sprint.startDate} → {sprint.endDate} ({sprint.duration} sem)
+                              {sprint.startDate} → {sprint.endDate} (
+                              {sprint.duration} sem)
                             </TableCell>
                             <TableCell>{sprint.capacity}h</TableCell>
                             <TableCell>{totalPoints}</TableCell>
@@ -1786,7 +1817,9 @@ export default function ProductBacklog() {
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell className="max-w-[260px] truncate">{sprint.goal || "—"}</TableCell>
+                            <TableCell className="max-w-[260px] truncate">
+                              {sprint.goal || "—"}
+                            </TableCell>
                             <TableCell>
                               <Link to={`/tasks/${sprint.id}`}>
                                 <Button size="sm" variant="outline">
@@ -1819,16 +1852,21 @@ export default function ProductBacklog() {
               {selectedTags.length > 0 &&
                 projectSprints.every((sprint) => {
                   const hasMatches = userStories.some(
-                    (s) => sprint.userStories.includes(s.id) && selectedTags.some((t) => s.tags.includes(t)),
+                    (s) =>
+                      sprint.userStories.includes(s.id) &&
+                      selectedTags.some((t) => s.tags.includes(t)),
                   );
                   return !hasMatches;
                 }) &&
                 projectSprints.length > 0 && (
                   <Card className="p-12 text-center">
                     <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Aucun sprint avec les tags sélectionnés</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Aucun sprint avec les tags sélectionnés
+                    </h3>
                     <p className="text-muted-foreground mb-4">
-                      Aucun sprint ne contient de stories avec les tags actuellement filtrés.
+                      Aucun sprint ne contient de stories avec les tags
+                      actuellement filtrés.
                     </p>
                     <Button variant="outline" onClick={clearTagFilters}>
                       <X className="h-4 w-4 mr-2" />
