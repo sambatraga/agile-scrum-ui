@@ -258,8 +258,6 @@ export default function SprintTasks() {
     return { done, total: tasks.length };
   };
 
-  const [logForm, setLogForm] = useState({ hours: 1, note: "" });
-
   return (
     <MainLayout>
       <div className="space-y-6 p-0 md:p-4">
