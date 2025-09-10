@@ -344,6 +344,23 @@ export default function SprintTasks() {
                                   </Select>
                                 </div>
                               </div>
+                              <div className="space-y-2">
+                                <Label>Dépendances (manuel)</Label>
+                                <div className="max-h-40 overflow-auto border rounded p-2">
+                                  {(sprint.tasks || []).filter((t)=> !selectedStory || t.userStoryId===selectedStory.id).map((t)=> (
+                                    <label key={t.id} className="flex items-center gap-2 py-1">
+                                      <input type="checkbox" className="rounded" checked={selectedDeps.includes(t.id)} onChange={(e)=>{
+                                        if(e.target.checked) setSelectedDeps((prev)=> [...prev, t.id]);
+                                        else setSelectedDeps((prev)=> prev.filter((id)=> id!==t.id));
+                                      }} />
+                                      <span className="text-sm">{t.title} · {t.type}</span>
+                                    </label>
+                                  ))}
+                                  {(sprint.tasks || []).filter((t)=> !selectedStory || t.userStoryId===selectedStory.id).length===0 && (
+                                    <p className="text-xs text-muted-foreground">Aucune tâche existante pour lier.</p>
+                                  )}
+                                </div>
+                              </div>
                               <div className="flex justify-end gap-2">
                                 <Button variant="outline" onClick={()=>setIsCreateOpen(false)}>Annuler</Button>
                                 <Button onClick={createTasks}>Créer</Button>
@@ -418,7 +435,7 @@ export default function SprintTasks() {
                                   </div>
                                   <div className="flex justify-end gap-2">
                                     <Button variant="outline" onClick={()=>setLogTaskId(null)}>Annuler</Button>
-                                    <Button onClick={()=>{ if(logTaskId){ logTime(logTaskId, logForm.hours, logForm.note); setLogTaskId(null); toast({ title: "Temps enregistré", description: `${logForm.hours}h ajoutées`}); } }}>Enregistrer</Button>
+                                    <Button onClick={()=>{ if(logTaskId){ logTime(logTaskId, logForm.hours, logForm.note); setLogTaskId(null); toast({ title: "Temps enregistré", description: `${logForm.hours}h ajout��es`}); } }}>Enregistrer</Button>
                                   </div>
                                 </div>
                               </DialogContent>
