@@ -290,7 +290,7 @@ export default function SprintTasks() {
                           <div className="font-medium">{story.storyPoints} SP · {formatUserStory(story)}</div>
                           <div className="text-xs text-muted-foreground">{sp.done}/{sp.total} tâches</div>
                         </button>
-                        <Dialog open={isCreateOpen && selectedStoryId === story.id} onOpenChange={(o)=>{ setIsCreateOpen(o); if(!o) setForm((f)=>({...f, title:"", description:"", estimatedHours:1, type:"Development"})); }}>
+                        <Dialog open={isCreateOpen && selectedStoryId === story.id} onOpenChange={(o)=>{ setIsCreateOpen(o); if(!o){ setForm((f)=>({...f, title:"", description:"", estimatedHours:1, type:"Development"})); setSelectedDeps([]);} }}>
                           <DialogTrigger asChild>
                             <Button size="sm"><Plus className="h-4 w-4 mr-1"/> Ajouter tâche</Button>
                           </DialogTrigger>
