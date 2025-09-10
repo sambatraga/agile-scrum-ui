@@ -144,7 +144,8 @@ interface Sprint {
   tasks: Task[];
   capacity: number; // heures disponibles
   velocity: number; // story points complétés
-  locked: boolean; // figé après démarrage
+  locked: boolean; // fig�� après démarrage
+  goal?: string;
 }
 
 const fibonacciPoints = [1, 2, 3, 5, 8, 13, 21];
