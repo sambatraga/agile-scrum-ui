@@ -349,6 +349,7 @@ const mockSprints: Sprint[] = [
     capacity: 80,
     velocity: 0,
     locked: true,
+    goal: "Shopping & payment",
   },
 ];
 
@@ -755,7 +756,7 @@ export default function ProductBacklog() {
                   size="sm"
                   className="h-6 w-6 p-0 hover:bg-gray-100"
                   onClick={() => moveStory(story.id, "up")}
-                  title="Déplacer vers le haut"
+                  title="D��placer vers le haut"
                 >
                   <ArrowUp className="h-3 w-3" />
                 </Button>
