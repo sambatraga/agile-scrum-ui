@@ -157,6 +157,7 @@ export default function SprintTasks() {
     estimatedHours: 1,
     assignee: "",
   });
+  const [selectedDeps, setSelectedDeps] = useState<string[]>([]);
 
   useEffect(() => {
     setForm((f) => ({ ...f, assignee: recommendAssignee() }));
