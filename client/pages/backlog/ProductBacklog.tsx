@@ -358,8 +358,22 @@ export default function ProductBacklog() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>(
     mockProjects[0]?.id || "",
   );
-  const [userStories, setUserStories] = useState<UserStory[]>(mockUserStories);
-  const [sprints, setSprints] = useState<Sprint[]>(mockSprints);
+  const [userStories, setUserStories] = useState<UserStory[]>(() => {
+    try {
+      const raw = localStorage.getItem("backlog_userStories");
+      return raw ? (JSON.parse(raw) as UserStory[]) : mockUserStories;
+    } catch {
+      return mockUserStories;
+    }
+  });
+  const [sprints, setSprints] = useState<Sprint[]>(() => {
+    try {
+      const raw = localStorage.getItem("backlog_sprints");
+      return raw ? (JSON.parse(raw) as Sprint[]) : mockSprints;
+    } catch {
+      return mockSprints;
+    }
+  });
   const [isCreateStoryOpen, setIsCreateStoryOpen] = useState(false);
   const [isCreateSprintOpen, setIsCreateSprintOpen] = useState(false);
   const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
@@ -756,7 +770,7 @@ export default function ProductBacklog() {
                   size="sm"
                   className="h-6 w-6 p-0 hover:bg-gray-100"
                   onClick={() => moveStory(story.id, "up")}
-                  title="D��placer vers le haut"
+                  title="Déplacer vers le haut"
                 >
                   <ArrowUp className="h-3 w-3" />
                 </Button>
