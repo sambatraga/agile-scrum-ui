@@ -144,7 +144,7 @@ interface Sprint {
   tasks: Task[];
   capacity: number; // heures disponibles
   velocity: number; // story points complétés
-  locked: boolean; // fig�� après démarrage
+  locked: boolean; // figé après démarrage
   goal?: string;
 }
 
@@ -334,6 +334,7 @@ const mockSprints: Sprint[] = [
     capacity: 80,
     velocity: 5,
     locked: true,
+    goal: "Implement authentication",
   },
   {
     id: "2",
