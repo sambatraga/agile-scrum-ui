@@ -193,7 +193,7 @@ export default function SprintTasks() {
         assignee: form.assignee || recommendAssignee(),
         type: form.type,
         priority: selectedStory.priority,
-        dependencies: [],
+        dependencies: [...selectedDeps],
       };
 
       // Automatic dependencies: testing depends on development tasks of the same story
