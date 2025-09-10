@@ -23,6 +23,7 @@ import SprintExecution from "./pages/sprints/SprintExecution";
 import SprintReview from "./pages/sprints/SprintReview";
 import KanbanBoard from "./pages/tasks/KanbanBoard";
 import TimeTracking from "./pages/tasks/TimeTracking";
+import SprintTasks from "./pages/tasks/SprintTasks";
 import EisenhowerMatrix from "./pages/productivity/EisenhowerMatrix";
 import PomodoroTimer from "./pages/productivity/PomodoroTimer";
 import TeamManagement from "./pages/team/TeamManagement";
