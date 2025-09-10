@@ -119,6 +119,10 @@ interface Task {
   actualHours: number;
   status: "Todo" | "In Progress" | "Done";
   assignee?: string;
+  type: "Development" | "Testing" | "Design" | "Analysis" | "Documentation";
+  priority: "High" | "Medium" | "Low";
+  dependencies: string[];
+  blocked?: boolean;
 }
 
 interface Project {
