@@ -216,6 +216,7 @@ export default function SprintTasks() {
     }
 
     setForm({ title: "", description: "", type: "Development", estimatedHours: 1, assignee: recommendAssignee() });
+    setSelectedDeps([]);
   };
 
   const logTime = (taskId: string, hours: number, note?: string) => {
