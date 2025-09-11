@@ -119,7 +119,7 @@ interface WorkLogEntry {
   date: string;
 }
 
-const TEAM = ["Alice", "Bob", "Charlie", "Diana"];
+const TEAM = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
 
 const priorityColors = {
   High: "bg-red-100 text-red-800",
