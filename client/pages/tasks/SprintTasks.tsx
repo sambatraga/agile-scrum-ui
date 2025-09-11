@@ -487,7 +487,11 @@ export default function SprintTasks() {
                           <div className="font-medium">
                             {story.storyPoints} SP · {formatUserStory(story)}
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${priorityColors[story.priority]}`}>{story.priority}</span>
+                            <span className="text-xs text-muted-foreground">Valeur {story.businessValue}</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
                             {sp.done}/{sp.total} tâches
                           </div>
                         </button>
@@ -857,6 +861,7 @@ export default function SprintTasks() {
                     )}
                   </TableBody>
                 </Table>
+                <div className="text-xs text-right text-muted-foreground mt-2">Historique vélocité</div>
               </CardContent>
             </Card>
           </div>
