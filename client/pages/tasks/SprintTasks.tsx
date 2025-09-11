@@ -48,6 +48,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
 import {
   Plus,
   Timer,
@@ -171,6 +173,42 @@ export default function SprintTasks() {
     () => sprints.find((s) => s.id === sprintId) || null,
     [sprints, sprintId],
   );
+
+  // Seed demo data (tasks and work logs) if empty to showcase UI
+  useEffect(() => {
+    if (!sprint) return;
+    let updated = false;
+    if (!sprint.tasks || sprint.tasks.length === 0) {
+      const storyForTasks = sprint.userStories[0] || null;
+      const chooseStory = storyForTasks || userStories[0]?.id || "";
+      const chosenStory = userStories.find((s)=> s.id === chooseStory) || userStories[0];
+      const basePriority = chosenStory?.priority || "Medium";
+      const seed: Task[] = [
+        { id: `seed-${sprint.id}-1`, userStoryId: chooseStory, title: "Dev task 1", description: "Implement login form", estimatedHours: 3, actualHours: 1, status: "Todo", assignee: "Alice", type: "Development", priority: basePriority, dependencies: [] },
+        { id: `seed-${sprint.id}-2`, userStoryId: chooseStory, title: "Test task", description: "Write tests", estimatedHours: 2, actualHours: 0, status: "In Progress", assignee: "Bob", type: "Testing", priority: basePriority, dependencies: ["seed-"+sprint.id+"-1"] },
+        { id: `seed-${sprint.id}-3`, userStoryId: chooseStory, title: "Design task", description: "Refine UI", estimatedHours: 3, actualHours: 1, status: "In Progress", assignee: "Charlie", type: "Design", priority: basePriority, dependencies: [] },
+        { id: `seed-${sprint.id}-4`, userStoryId: chooseStory, title: "Analysis task", description: "API analysis", estimatedHours: 3, actualHours: 1, status: "Testing", assignee: "Eve", type: "Analysis", priority: basePriority, dependencies: [] },
+        { id: `seed-${sprint.id}-5`, userStoryId: chooseStory, title: "Doc task", description: "Write docs", estimatedHours: 2, actualHours: 2, status: "Done", assignee: undefined, type: "Documentation", priority: basePriority, dependencies: [] },
+      ];
+      const next = sprints.map((sp)=> sp.id===sprint.id ? { ...sp, tasks: seed } : sp);
+      setSprints(next);
+      updated = true;
+    }
+    if (workLogs.length === 0) {
+      const wl = [
+        { id: `wl-${sprint.id}-1`, taskId: `seed-${sprint.id}-1`, user: "Eve", hours: 1, note: "Dev task 1", date: new Date().toISOString().split("T")[0] },
+        { id: `wl-${sprint.id}-2`, taskId: `seed-${sprint.id}-2`, user: "Bob", hours: 3, note: "Test task", date: new Date(Date.now()-86400000).toISOString().split("T")[0] },
+        { id: `wl-${sprint.id}-3`, taskId: `seed-${sprint.id}-3`, user: "Charlie", hours: 1, note: "Analysis task", date: new Date(Date.now()-2*86400000).toISOString().split("T")[0] },
+        { id: `wl-${sprint.id}-4`, taskId: `seed-${sprint.id}-5`, user: "Eve", hours: 2, note: "Doc task", date: new Date(Date.now()-3*86400000).toISOString().split("T")[0] },
+      ];
+      setWorkLogs(wl);
+      updated = true;
+    }
+    if (updated) {
+      toast({ title: "Données démo", description: "Données statiques chargées pour les graphiques et tableaux" });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sprintId, sprint?.id]);
   const sprintStories = useMemo(() => {
     if (!sprint) return [];
     return userStories.filter((s) => sprint.userStories.includes(s.id));
@@ -351,6 +389,19 @@ export default function SprintTasks() {
     Math.round((capacityUsed / sprint.capacity) * 100),
   );
 
+  // top KPIs
+  const totalStoryPoints = sprintStories.reduce((sum,s)=> sum + s.storyPoints, 0);
+  const totalLogged = sprint.tasks.reduce((sum,t)=> sum + (t.actualHours||0), 0);
+
+  // static chart data to demo
+  const dailyHours = [
+    { day: "Mon", Estimated: 2, Logged: 1 },
+    { day: "Tue", Estimated: 6, Logged: 4 },
+    { day: "Wed", Estimated: 8, Logged: 7 },
+    { day: "Thu", Estimated: 5, Logged: 3 },
+    { day: "Fri", Estimated: 4, Logged: 2 },
+  ];
+
   const storyProgress = (storyId: string) => {
     const tasks = sprint.tasks.filter((t) => t.userStoryId === storyId);
     const done = tasks.filter((t) => t.status === "Done").length;
@@ -377,6 +428,37 @@ export default function SprintTasks() {
               Démarrer le sprint
             </Button>
           </div>
+        </div>
+
+        {/* Top KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>80 h capacité</CardTitle>
+              <CardDescription>Charge planifiée</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Progress value={capacityProgress} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{totalStoryPoints} story points</CardTitle>
+              <CardDescription>Vélocité prévue</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Progress value={Math.min(100, (totalStoryPoints/40)*100)} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{totalLogged} h</CardTitle>
+              <CardDescription>/ {sprint.capacity} h / {(sprint.capacity - totalLogged)} restantes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Progress value={Math.min(100, (totalLogged / sprint.capacity) * 100)} />
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-4">
@@ -779,35 +861,8 @@ export default function SprintTasks() {
             </Card>
           </div>
 
-          {/* Right: capacity & tips */}
+          {/* Right: logs & charts */}
           <div className="lg:col-span-3 space-y-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>Capacité</CardTitle>
-                <CardDescription>
-                  {capacityUsed} / {sprint.capacity} heures planifiées
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Progress value={capacityProgress} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Rappels & Règles</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-2">
-                <p>• Estimation ≤ 8h, sinon décomposition automatique.</p>
-                <p>
-                  • Dépendances: Testing dépend des tâches Development de la
-                  même story.
-                </p>
-                <p>• Priorité héritée de la user story.</p>
-                <p>• Logs par pas de 0,25h.</p>
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Work Log</CardTitle>
@@ -834,6 +889,52 @@ export default function SprintTasks() {
                 {workLogs.length === 0 && (
                   <p className="text-muted-foreground">Aucun log.</p>
                 )}
+                <div className="pt-2">
+                  <Button size="sm" variant="outline">
+                    <Timer className="h-4 w-4 mr-1" /> Log time
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Daily Hours Over Capacity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={{ Estimated: { label: "Estimée", color: "hsl(var(--primary))" }, Logged: { label: "Loggée", color: "hsl(var(--chart-2))" } }} className="h-48">
+                  <BarChart data={dailyHours}>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                    <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Legend />
+                    <Bar dataKey="Estimated" fill="var(--color-Estimated)" radius={4} />
+                    <Bar dataKey="Logged" fill="var(--color-Logged)" radius={4} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Efficacité</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm space-y-2">
+                {[
+                  { user: "Alice", eff: 75 },
+                  { user: "Bob", eff: 100 },
+                  { user: "Charlie", eff: 40 },
+                  { user: "Diana", eff: 50 },
+                ].map((e) => (
+                  <div key={e.user} className="flex items-center gap-2">
+                    <div className="w-16 text-muted-foreground">{e.user}</div>
+                    <div className="flex-1">
+                      <Progress value={e.eff} />
+                    </div>
+                    <div className="w-12 text-right">{e.eff}%</div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
