@@ -48,7 +48,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
 import {
   Plus,
@@ -181,33 +185,128 @@ export default function SprintTasks() {
     if (!sprint.tasks || sprint.tasks.length === 0) {
       const storyForTasks = sprint.userStories[0] || null;
       const chooseStory = storyForTasks || userStories[0]?.id || "";
-      const chosenStory = userStories.find((s)=> s.id === chooseStory) || userStories[0];
+      const chosenStory =
+        userStories.find((s) => s.id === chooseStory) || userStories[0];
       const basePriority = chosenStory?.priority || "Medium";
       const seed: Task[] = [
-        { id: `seed-${sprint.id}-1`, userStoryId: chooseStory, title: "Dev task 1", description: "Implement login form", estimatedHours: 3, actualHours: 1, status: "Todo", assignee: "Alice", type: "Development", priority: basePriority, dependencies: [] },
-        { id: `seed-${sprint.id}-2`, userStoryId: chooseStory, title: "Test task", description: "Write tests", estimatedHours: 2, actualHours: 0, status: "In Progress", assignee: "Bob", type: "Testing", priority: basePriority, dependencies: ["seed-"+sprint.id+"-1"] },
-        { id: `seed-${sprint.id}-3`, userStoryId: chooseStory, title: "Design task", description: "Refine UI", estimatedHours: 3, actualHours: 1, status: "In Progress", assignee: "Charlie", type: "Design", priority: basePriority, dependencies: [] },
-        { id: `seed-${sprint.id}-4`, userStoryId: chooseStory, title: "Analysis task", description: "API analysis", estimatedHours: 3, actualHours: 1, status: "Testing", assignee: "Eve", type: "Analysis", priority: basePriority, dependencies: [] },
-        { id: `seed-${sprint.id}-5`, userStoryId: chooseStory, title: "Doc task", description: "Write docs", estimatedHours: 2, actualHours: 2, status: "Done", assignee: undefined, type: "Documentation", priority: basePriority, dependencies: [] },
+        {
+          id: `seed-${sprint.id}-1`,
+          userStoryId: chooseStory,
+          title: "Dev task 1",
+          description: "Implement login form",
+          estimatedHours: 3,
+          actualHours: 1,
+          status: "Todo",
+          assignee: "Alice",
+          type: "Development",
+          priority: basePriority,
+          dependencies: [],
+        },
+        {
+          id: `seed-${sprint.id}-2`,
+          userStoryId: chooseStory,
+          title: "Test task",
+          description: "Write tests",
+          estimatedHours: 2,
+          actualHours: 0,
+          status: "In Progress",
+          assignee: "Bob",
+          type: "Testing",
+          priority: basePriority,
+          dependencies: ["seed-" + sprint.id + "-1"],
+        },
+        {
+          id: `seed-${sprint.id}-3`,
+          userStoryId: chooseStory,
+          title: "Design task",
+          description: "Refine UI",
+          estimatedHours: 3,
+          actualHours: 1,
+          status: "In Progress",
+          assignee: "Charlie",
+          type: "Design",
+          priority: basePriority,
+          dependencies: [],
+        },
+        {
+          id: `seed-${sprint.id}-4`,
+          userStoryId: chooseStory,
+          title: "Analysis task",
+          description: "API analysis",
+          estimatedHours: 3,
+          actualHours: 1,
+          status: "Testing",
+          assignee: "Eve",
+          type: "Analysis",
+          priority: basePriority,
+          dependencies: [],
+        },
+        {
+          id: `seed-${sprint.id}-5`,
+          userStoryId: chooseStory,
+          title: "Doc task",
+          description: "Write docs",
+          estimatedHours: 2,
+          actualHours: 2,
+          status: "Done",
+          assignee: undefined,
+          type: "Documentation",
+          priority: basePriority,
+          dependencies: [],
+        },
       ];
-      const next = sprints.map((sp)=> sp.id===sprint.id ? { ...sp, tasks: seed } : sp);
+      const next = sprints.map((sp) =>
+        sp.id === sprint.id ? { ...sp, tasks: seed } : sp,
+      );
       setSprints(next);
       updated = true;
     }
     if (workLogs.length === 0) {
       const wl = [
-        { id: `wl-${sprint.id}-1`, taskId: `seed-${sprint.id}-1`, user: "Eve", hours: 1, note: "Dev task 1", date: new Date().toISOString().split("T")[0] },
-        { id: `wl-${sprint.id}-2`, taskId: `seed-${sprint.id}-2`, user: "Bob", hours: 3, note: "Test task", date: new Date(Date.now()-86400000).toISOString().split("T")[0] },
-        { id: `wl-${sprint.id}-3`, taskId: `seed-${sprint.id}-3`, user: "Charlie", hours: 1, note: "Analysis task", date: new Date(Date.now()-2*86400000).toISOString().split("T")[0] },
-        { id: `wl-${sprint.id}-4`, taskId: `seed-${sprint.id}-5`, user: "Eve", hours: 2, note: "Doc task", date: new Date(Date.now()-3*86400000).toISOString().split("T")[0] },
+        {
+          id: `wl-${sprint.id}-1`,
+          taskId: `seed-${sprint.id}-1`,
+          user: "Eve",
+          hours: 1,
+          note: "Dev task 1",
+          date: new Date().toISOString().split("T")[0],
+        },
+        {
+          id: `wl-${sprint.id}-2`,
+          taskId: `seed-${sprint.id}-2`,
+          user: "Bob",
+          hours: 3,
+          note: "Test task",
+          date: new Date(Date.now() - 86400000).toISOString().split("T")[0],
+        },
+        {
+          id: `wl-${sprint.id}-3`,
+          taskId: `seed-${sprint.id}-3`,
+          user: "Charlie",
+          hours: 1,
+          note: "Analysis task",
+          date: new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0],
+        },
+        {
+          id: `wl-${sprint.id}-4`,
+          taskId: `seed-${sprint.id}-5`,
+          user: "Eve",
+          hours: 2,
+          note: "Doc task",
+          date: new Date(Date.now() - 3 * 86400000).toISOString().split("T")[0],
+        },
       ];
       setWorkLogs(wl);
       updated = true;
     }
     if (updated) {
-      toast({ title: "Données démo", description: "Données statiques chargées pour les graphiques et tableaux" });
+      toast({
+        title: "Données démo",
+        description:
+          "Données statiques chargées pour les graphiques et tableaux",
+      });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sprintId, sprint?.id]);
   const sprintStories = useMemo(() => {
     if (!sprint) return [];
@@ -390,8 +489,14 @@ export default function SprintTasks() {
   );
 
   // top KPIs
-  const totalStoryPoints = sprintStories.reduce((sum,s)=> sum + s.storyPoints, 0);
-  const totalLogged = sprint.tasks.reduce((sum,t)=> sum + (t.actualHours||0), 0);
+  const totalStoryPoints = sprintStories.reduce(
+    (sum, s) => sum + s.storyPoints,
+    0,
+  );
+  const totalLogged = sprint.tasks.reduce(
+    (sum, t) => sum + (t.actualHours || 0),
+    0,
+  );
 
   // static chart data to demo
   const dailyHours = [
@@ -447,16 +552,21 @@ export default function SprintTasks() {
               <CardDescription>Vélocité prévue</CardDescription>
             </CardHeader>
             <CardContent>
-              <Progress value={Math.min(100, (totalStoryPoints/40)*100)} />
+              <Progress value={Math.min(100, (totalStoryPoints / 40) * 100)} />
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle>{totalLogged} h</CardTitle>
-              <CardDescription>/ {sprint.capacity} h / {(sprint.capacity - totalLogged)} restantes</CardDescription>
+              <CardDescription>
+                / {sprint.capacity} h / {sprint.capacity - totalLogged}{" "}
+                restantes
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Progress value={Math.min(100, (totalLogged / sprint.capacity) * 100)} />
+              <Progress
+                value={Math.min(100, (totalLogged / sprint.capacity) * 100)}
+              />
             </CardContent>
           </Card>
         </div>
@@ -488,8 +598,14 @@ export default function SprintTasks() {
                             {story.storyPoints} SP · {formatUserStory(story)}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${priorityColors[story.priority]}`}>{story.priority}</span>
-                            <span className="text-xs text-muted-foreground">Valeur {story.businessValue}</span>
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[10px] ${priorityColors[story.priority]}`}
+                            >
+                              {story.priority}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Valeur {story.businessValue}
+                            </span>
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
                             {sp.done}/{sp.total} tâches
@@ -861,7 +977,9 @@ export default function SprintTasks() {
                     )}
                   </TableBody>
                 </Table>
-                <div className="text-xs text-right text-muted-foreground mt-2">Historique vélocité</div>
+                <div className="text-xs text-right text-muted-foreground mt-2">
+                  Historique vélocité
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -907,15 +1025,36 @@ export default function SprintTasks() {
                 <CardTitle>Daily Hours Over Capacity</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={{ Estimated: { label: "Estimée", color: "hsl(var(--primary))" }, Logged: { label: "Loggée", color: "hsl(var(--chart-2))" } }} className="h-48">
+                <ChartContainer
+                  config={{
+                    Estimated: {
+                      label: "Estimée",
+                      color: "hsl(var(--primary))",
+                    },
+                    Logged: { label: "Loggée", color: "hsl(var(--chart-2))" },
+                  }}
+                  className="h-48"
+                >
                   <BarChart data={dailyHours}>
                     <CartesianGrid vertical={false} strokeDasharray="3 3" />
                     <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                    <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
-                    <Bar dataKey="Estimated" fill="var(--color-Estimated)" radius={4} />
-                    <Bar dataKey="Logged" fill="var(--color-Logged)" radius={4} />
+                    <Bar
+                      dataKey="Estimated"
+                      fill="var(--color-Estimated)"
+                      radius={4}
+                    />
+                    <Bar
+                      dataKey="Logged"
+                      fill="var(--color-Logged)"
+                      radius={4}
+                    />
                   </BarChart>
                 </ChartContainer>
               </CardContent>
